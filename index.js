@@ -1,5 +1,5 @@
 import "./css/toolbar.css";
-import langs from "./lang.json";
+import langs from "./locale.json";
 
 class CMS{
 	constructor({ lang, tags }){
