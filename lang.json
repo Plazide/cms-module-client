@@ -13,6 +13,32 @@
 		},
 		"elements": {
 			"li": "Item"
+		},
+		"shortcuts": {
+			"save": {
+				"name": "Save",
+				"combo": ["ctrl", "s"]
+			},
+			"bold": {
+				"name": "Bold",
+				"combo": ["ctrl", "b"]
+			},
+			"italic": {
+				"name": "Italic",
+				"combo": ["ctrl", "i"]
+			},
+			"underline": {
+				"name": "Underline",
+				"combo": ["ctrl", "u"]
+			},
+			"linethrough": {
+				"name": "Linethrough",
+				"combo": ["ctrl", "shift", "l"]
+			},
+			"link": {
+				"name": "Insert link",
+				"combo": ["ctrl", "l"]
+			}
 		}
 	},
 	"sv": {
@@ -21,14 +47,40 @@
 		"tooltips": {
 			"drag": "Flytta verktygslådan",
 			"save": "Spara ändringar",
-			"bold": "Fetstilt",
-			"italic": "Kursivt",
+			"bold": "Fet",
+			"italic": "Kursiv",
 			"underline": "Understruket",
 			"linethrough": "Genomstruket",
 			"link": "Infoga länk"
 		},
 		"elements": {
 			"li": "Punkt"
+		},
+		"shortcuts": {
+			"save": {
+				"name": "Spara ändringar",
+				"combo": ["ctrl", "s"]
+			},
+			"bold": {
+				"name": "Fet",
+				"combo": ["ctrl", "f"]
+			},
+			"italic": {
+				"name": "Kursiv",
+				"combo": ["ctrl", "k"]
+			},
+			"underline": {
+				"name": "Understruken",
+				"combo": ["ctrl", "u"]
+			},
+			"linethrough": {
+				"name": "Genomstruken",
+				"combo": ["ctrl", "g"]
+			},
+			"link": {
+				"name": "Infoga länk",
+				"combo": ["ctrl", "l"]
+			}
 		}
 	}	
 }

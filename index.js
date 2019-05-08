@@ -6,6 +6,10 @@ class CMS{
 		if(!Array.isArray(tags) && tags) throw new TypeError("tags option needs to be an array.");
 		if(!lang) lang = "en";
 
+		console.log(lang);
+
+		// Set the language. If a language code is not provided or is unvalid, english will be used a default.
+		this.locale = langs[lang];
 		this.tags = [
 			"a",
 			"p",
@@ -19,9 +23,39 @@ class CMS{
 			"ol"
 		];
 		this.sections = [];
-
-		// Set the language. If a language code is not provided or is unvalid, english will be used a default.
-		this.text = langs[lang];
+		this.shortcuts = [
+			{
+				name: this.locale.shortcuts.save.name,
+				combo: this.locale.shortcuts.save.combo,
+				func: this.saveChanges,
+				global: true
+			},
+			{
+				name: this.locale.shortcuts.bold.name,
+				combo: this.locale.shortcuts.bold.combo,
+				func: this.makeBold
+			},
+			{
+				name: this.locale.shortcuts.italic.name,
+				combo: this.locale.shortcuts.italic.combo,
+				func: this.makeItalic
+			},
+			{
+				name: this.locale.shortcuts.underline.name,
+				combo: this.locale.shortcuts.underline.combo,
+				func: this.makeUnderlined
+			},
+			{
+				name: this.locale.shortcuts.linethrough.name,
+				combo: this.locale.shortcuts.linethrough.combo,
+				func: this.makeLinethrough
+			},
+			{
+				name: this.locale.shortcuts.link.name,
+				combo: this.locale.shortcuts.link.combo,
+				func: (e) => this.insertLink(e)
+			}
+		];
 
 		// Add the custom tags to the tags array if such an options was provided.
 		if(tags)
@@ -61,6 +95,38 @@ class CMS{
 		}
 
 		this.renderToolbar();
+		document.onkeydown = (e) => this.handleShortcuts(e);
+	}
+
+	handleShortcuts(e){
+		const combo = [];
+		const ctrl = e.ctrlKey;
+		const shift = e.shiftKey;
+		const alt = e.altKey;
+		const key = e.key.toLowerCase();
+		const isInputContext = e.target.classList.contains("cms-input-field");
+
+		if(ctrl)
+			combo.push("ctrl");
+
+		if(shift)
+			combo.push("shift");
+
+		if(alt)
+			combo.push("alt");
+
+		combo.push(key);
+		const shortcut = getShortcut(this.shortcuts, combo);
+
+		if(shortcut !== false)
+			if(isInputContext || shortcut.global){
+				e.stopImmediatePropagation();
+				e.preventDefault();
+
+				if(e.repeat) return;
+
+				shortcut.func(e);
+			}
 	}
 
 	renderToolbar(){
@@ -72,43 +138,49 @@ class CMS{
 
 		const save = createBtn({
 			name: "save",
-			title: this.text.tooltips.save,
+			title: this.locale.tooltips.save,
+			shortcut: this.locale.shortcuts.save,
 			handler: this.saveChanges
 		});
 
 		const bold = createBtn({
 			name: "bold",
-			title: this.text.tooltips.bold,
+			title: this.locale.tooltips.bold,
+			shortcut: this.locale.shortcuts.bold,
 			handler: this.makeBold
 		});
 
 		const italic = createBtn({
 			name: "italic",
-			title: this.text.tooltips.italic,
+			title: this.locale.tooltips.italic,
+			shortcut: this.locale.shortcuts.italic,
 			handler: this.makeItalic
 		});
 
 		const drag = createBtn({
 			name: "drag",
-			title: this.text.tooltips.drag,
+			title: this.locale.tooltips.drag,
 			handler: this.dragToolbar
 		});
 
 		const underline = createBtn({
 			name: "underline",
-			title: this.text.tooltips.underline,
+			title: this.locale.tooltips.underline,
+			shortcut: this.locale.shortcuts.underline,
 			handler: this.makeUnderlined
 		});
 
 		const linethrough = createBtn({
 			name: "linethrough",
-			title: this.text.tooltips.linethrough,
+			title: this.locale.tooltips.linethrough,
+			shortcut: this.locale.shortcuts.linethrough,
 			handler: this.makeLinethrough
 		});
 
 		const link = createBtn({
 			name: "link",
-			title: this.text.tooltips.link,
+			title: this.locale.tooltips.link,
+			shortcut: this.locale.shortcuts.link,
 			handler: this.insertLink
 		});
 
@@ -156,7 +228,7 @@ class CMS{
 				const li = document.createElement("li");
 				const numOfItems = target.querySelectorAll("li").length + 1;
 
-				li.innerText = this.text.elements.li + " " + numOfItems;
+				li.innerText = this.locale.elements.li + " " + numOfItems;
 				target.appendChild(li);
 				li.focus();
 			}
@@ -314,6 +386,14 @@ class CMS{
 	}
 }
 
+function getShortcut(shortcuts, combo){
+	for(let shortcut of shortcuts)
+		if(shortcut.combo.join(" ") === combo.join(" "))
+			return shortcut;
+
+	return false;
+}
+
 async function promptUser(msg){
 	return new Promise( resolve => {
 		const promptContainer = document.createElement("div");
@@ -347,9 +427,10 @@ async function promptUser(msg){
 	});
 }
 
-function createBtn({ name, handler, title }){
+function createBtn({ name, handler, title, shortcut }){
 	const btn = document.createElement("div");
-	btn.setAttribute("title", title);
+	const combo = shortcut ? ` (${shortcut.combo.join("+")})` : "";
+	btn.setAttribute("title", title + combo);
 	btn.classList.add("cms-" + name);
 	btn.classList.add("cms-btn");
 	btn.addEventListener("mousedown", handler);

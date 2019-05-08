@@ -1,5 +1,5 @@
 # CMS Module Client
-An editor for html pages. This is the client side part of the JS CMS module tool. It lets you edit a webpage in a WYSIWYG way. Together with the Server side module, it creates nicely integrated content management system for Node JS.
+An editor for html pages. This is the client side part of the JS CMS module tool. It lets you edit a webpage in a WYSIWYG way. Together with the server side module, it creates nicely integrated content management system for Node JS.
 
 ## Installation
 To install this package, simply run:
