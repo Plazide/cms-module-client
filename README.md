@@ -13,9 +13,7 @@ Once installed, you need import it into your project and create an instance of t
 ```js
 import CMS from "cms-module-client";
 
-const cms = new CMS({
-	lang: "en" // The default language is english, so this is not actually necessary.
-});
+const cms = new CMS();
 
 cms.run();
 ```
