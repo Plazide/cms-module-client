@@ -211,10 +211,9 @@ class CMS{
 			return;
 
 		while(childTags.indexOf(el.localName) !== -1){
-			// Cancel when 40 iterations have been passed to avoid infinite loops.
+			// Cancel after 40 iterations to avoid infinite loops.
 			if(i >= 40) break;
 
-			console.log(el.localName);
 			if(elements.indexOf(el.localName) !== -1 && childTags.indexOf(el.localName) === -1)
 				break;
 
@@ -223,8 +222,6 @@ class CMS{
 
 			i += 1;
 		}
-
-		console.log(i);
 
 		el.setAttribute("contenteditable", "true");
 		el.setAttribute("spellcheck", "false");
@@ -294,7 +291,6 @@ class CMS{
 	}
 
 	async insertLink(e){
-		const el = this;
 		e.preventDefault();
 
 		document.execCommand("backColor", false, "#ccc");
@@ -315,16 +311,11 @@ class CMS{
 
 		document.execCommand("backColor", false, "transparent");
 		document.execCommand("createLink", false, link);
-
-		console.log("Start:", startIndex);
-		console.log("End:", endIndex);
-		console.log(range);
-		console.log(link);
 	}
 }
 
 async function promptUser(msg){
-	return new Promise( (resolve, reject) => {
+	return new Promise( resolve => {
 		const promptContainer = document.createElement("div");
 		promptContainer.classList.add("prompt-container");
 
@@ -364,26 +355,6 @@ function createBtn({ name, handler, title }){
 	btn.addEventListener("mousedown", handler);
 
 	return btn;
-}
-
-function applyAttrs(attrs){
-	for(let attr in attrs)
-		this.setAttribute(attr, attrs[attr]);
-
-	return this;
-}
-
-function getAttributes(el){
-	const attrs = {};
-
-	for(let attr of el.attributes){
-		const value = attr.nodeValue;
-		const name = attr.nodeName;
-
-		attrs[name] = value;
-	}
-
-	return attrs;
 }
 
 function getSelectorPath(el){
@@ -447,7 +418,6 @@ function removeInput(){
 
 function handleAbort(e){
 	const target = e.target.localName !== "li" ? e.target : e.target.parentNode;
-	console.log("Abort!!");
 
 	if(shouldAbort(target))
 		removeInput();
