@@ -1,0 +1,34 @@
+{
+	"en": {
+		"lang_name": "english",
+		"lang_code": "en",
+		"tooltips": {
+			"drag": "Move toolbar",
+			"save": "Save changes",
+			"bold": "Bold",
+			"italic": "Italic",
+			"underline": "Underline",
+			"linethrough": "Linethrough",
+			"link": "Insert link"
+		},
+		"elements": {
+			"li": "Item"
+		}
+	},
+	"sv": {
+		"lang_name": "svenska",
+		"lang_code": "sv",
+		"tooltips": {
+			"drag": "Flytta verktygslådan",
+			"save": "Spara ändringar",
+			"bold": "Fetstilt",
+			"italic": "Kursivt",
+			"underline": "Understruket",
+			"linethrough": "Genomstruket",
+			"link": "Infoga länk"
+		},
+		"elements": {
+			"li": "Punkt"
+		}
+	}	
+}

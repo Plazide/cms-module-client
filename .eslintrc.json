@@ -1,0 +1,18 @@
+{
+	"extends": ["plazide"],
+	"env": {
+		"browser": true,
+		"es6": true
+	},
+	"rules": {
+		"no-new": 0,
+		"keyword-spacing": ["error", {"before": true, "after": false, "overrides": {
+			"import": {"after": true},
+			"from": {"after": true},
+			"await": {"after": true},
+			"else": {"before": false},
+			"catch": {"before": false},
+			"case": {"after": true}
+		}}]
+	}
+}
