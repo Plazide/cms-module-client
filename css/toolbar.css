@@ -64,12 +64,22 @@
 
 	width: 25%;
 	left: calc(50% - (25% / 2));
+	top: 100px;
 	
 	user-select: none;
 	-webkit-user-select: none;
 }
 .prompt-container h4{
-	margin: 0 0 .8em;
+	margin: 0 0 1.5em;
+}
+.prompt-container .prompt-cancel{
+	height: 28px;
+	width: 28px;
+	background: url("./icons/cancel.svg");
+	background-size: cover;
+	float: right;
+
+	cursor: pointer;
 }
 .prompt-container .prompt-input{
 	box-sizing: border-box;
@@ -109,4 +119,7 @@
 	border: 0;
 	transition: 
 		outline 150ms ease;
+}
+img.cms-input-field{
+	cursor: move;
 }

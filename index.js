@@ -376,8 +376,12 @@ class CMS{
 		const type = "file";
 
 		const savedSelection = saveSelection();
-		const{ url, name, file } = await promptUser(titleText, type);
+		const result = await promptUser(titleText, type);
 		applySelection(savedSelection);
+
+		if(!result) return;
+
+		const{ url, name, file } = result;
 		this.files.push(file);
 
 		document.execCommand(
@@ -397,7 +401,8 @@ class CMS{
 		const link = await promptUser(titleText, type);
 		applySelection(savedSelection);
 
-		document.execCommand(cmdText, false, link);
+		if(link)
+			document.execCommand(cmdText, false, link);
 	}
 }
 
@@ -441,6 +446,10 @@ async function promptUser(msg, type){
 		const promptMsg = document.createElement("h4");
 		promptMsg.innerText = msg;
 
+		const promptCancel = document.createElement("div");
+		promptCancel.classList.add("prompt-cancel");
+		promptCancel.addEventListener("click", cancelPrompt);
+
 		const promptInput = createPromptInput(type);
 		promptInput.addEventListener("keydown", (e) => submitPrompt(e, promptInput));
 
@@ -449,11 +458,18 @@ async function promptUser(msg, type){
 		promptSubmit.innerText = "Insert";
 		promptSubmit.addEventListener("click", (e) => submitPrompt(e, promptInput));
 
+		promptContainer.appendChild(promptCancel);
 		promptContainer.appendChild(promptMsg);
 		promptContainer.appendChild(promptInput);
 		promptContainer.appendChild(promptSubmit);
 
 		document.body.appendChild(promptContainer);
+
+		function cancelPrompt(e){
+			document.body.removeChild(promptContainer);
+
+			resolve(false);
+		}
 
 		function submitPrompt(e, el){
 			const target = el;
