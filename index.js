@@ -10,6 +10,7 @@ class CMS{
 
 		// Set the language. If a language code is not provided or is unvalid, english will be used a default.
 		this.locale = langs[lang];
+		this.files = [];
 		this.tags = [
 			"a",
 			"p",
@@ -43,7 +44,7 @@ class CMS{
 			{
 				name: this.locale.shortcuts.underline.name,
 				combo: this.locale.shortcuts.underline.combo,
-				func: this.makeUnderlined
+				func: this.makeUnderline
 			},
 			{
 				name: this.locale.shortcuts.linethrough.name,
@@ -167,7 +168,7 @@ class CMS{
 			name: "underline",
 			title: this.locale.tooltips.underline,
 			shortcut: this.locale.shortcuts.underline,
-			handler: this.makeUnderlined
+			handler: this.makeUnderline
 		});
 
 		const linethrough = createBtn({
@@ -181,7 +182,14 @@ class CMS{
 			name: "link",
 			title: this.locale.tooltips.link,
 			shortcut: this.locale.shortcuts.link,
-			handler: this.insertLink
+			handler: (e) => this.insertLink(e)
+		});
+
+		const image = createBtn({
+			name: "image",
+			title: this.locale.tooltips.image,
+			shortcut: this.locale.shortcuts.image,
+			handler: (e) => this.insertImage(e)
 		});
 
 		flex.appendChild(drag);
@@ -190,6 +198,7 @@ class CMS{
 		flex.appendChild(underline);
 		flex.appendChild(linethrough);
 		flex.appendChild(link);
+		flex.appendChild(image);
 		flex.appendChild(save);
 		toolbar.appendChild(flex);
 		document.body.appendChild(toolbar);
@@ -214,10 +223,8 @@ class CMS{
 		const tagName = target.localName;
 
 		// If user pressed escape, cancel the edit.
-		if(key === 27){
+		if(key === 27)
 			removeInput();
-			this.removeListeners();
-		}
 
 		// If the user is holding the shift key, don't confirm the change.
 		// Use the default action instead, which is creating a new line.
@@ -354,7 +361,7 @@ class CMS{
 		document.execCommand("italic");
 	}
 
-	makeUnderlined(){
+	makeUnderline(){
 		document.execCommand("underline");
 	}
 
@@ -362,28 +369,60 @@ class CMS{
 		document.execCommand("strikeThrough");
 	}
 
+	async insertImage(e){
+		e.preventDefault();
+		const titleText = this.locale.prompt.image;
+		const cmdText = "insertHtml";
+		const type = "file";
+
+		const savedSelection = saveSelection();
+		const{ url, name, file } = await promptUser(titleText, type);
+		applySelection(savedSelection);
+		this.files.push(file);
+
+		document.execCommand(
+			cmdText,
+			false,
+			`<img src="${url}" alt="${name}" style="max-width:100%;" />`
+		);
+	}
+
 	async insertLink(e){
 		e.preventDefault();
+		const titleText = this.locale.prompt.link;
+		const cmdText = "createLink";
+		const type = "input";
 
-		document.execCommand("backColor", false, "#ccc");
+		const savedSelection = saveSelection();
+		const link = await promptUser(titleText, type);
+		applySelection(savedSelection);
 
-		const selection = window.getSelection();
-		const extentOffset = selection.extentOffset;
-		const baseOffset = selection.baseOffset;
-		const focusNode = selection.focusNode;
-		const startIndex = extentOffset < baseOffset ? extentOffset : baseOffset;
-		const endIndex = extentOffset < baseOffset ? baseOffset : extentOffset;
-		const range = document.createRange();
-		const link = await promptUser("Link");
-
-		range.setStart(focusNode, startIndex);
-		range.setEnd(focusNode, endIndex);
-		selection.removeAllRanges();
-		selection.addRange(range);
-
-		document.execCommand("backColor", false, "transparent");
-		document.execCommand("createLink", false, link);
+		document.execCommand(cmdText, false, link);
 	}
+}
+
+function saveSelection(){
+	document.execCommand("backColor", false, "#ccc");
+
+	const selection = window.getSelection();
+	const range = document.createRange();
+	const extentOffset = selection.extentOffset;
+	const baseOffset = selection.baseOffset;
+	const focusNode = selection.focusNode;
+	const startIndex = extentOffset < baseOffset ? extentOffset : baseOffset;
+	const endIndex = extentOffset < baseOffset ? baseOffset : extentOffset;
+
+	range.setStart(focusNode, startIndex);
+	range.setEnd(focusNode, endIndex);
+
+	return{ range, selection };
+}
+
+function applySelection({ range, selection }){
+	selection.removeAllRanges();
+	selection.addRange(range);
+
+	document.execCommand("backColor", false, "transparent");
 }
 
 function getShortcut(shortcuts, combo){
@@ -394,7 +433,7 @@ function getShortcut(shortcuts, combo){
 	return false;
 }
 
-async function promptUser(msg){
+async function promptUser(msg, type){
 	return new Promise( resolve => {
 		const promptContainer = document.createElement("div");
 		promptContainer.classList.add("prompt-container");
@@ -402,20 +441,26 @@ async function promptUser(msg){
 		const promptMsg = document.createElement("h4");
 		promptMsg.innerText = msg;
 
-		const promptInput = document.createElement("div");
-		promptInput.setAttribute("contenteditable", "true");
-		promptInput.classList.add("prompt-input");
-		promptInput.addEventListener("keydown", submitPrompt);
+		const promptInput = createPromptInput(type);
+		promptInput.addEventListener("keydown", (e) => submitPrompt(e, promptInput));
+
+		const promptSubmit = document.createElement("div");
+		promptSubmit.classList.add("cms-submit-btn");
+		promptSubmit.innerText = "Insert";
+		promptSubmit.addEventListener("click", (e) => submitPrompt(e, promptInput));
 
 		promptContainer.appendChild(promptMsg);
 		promptContainer.appendChild(promptInput);
+		promptContainer.appendChild(promptSubmit);
 
 		document.body.appendChild(promptContainer);
 
-		function submitPrompt(e){
-			const target = e.target;
+		function submitPrompt(e, el){
+			const target = el;
 			const key = e.keyCode;
-			const value = target.innerText;
+			const type = e.type;
+			const tag = el.localName;
+			let value = target.innerText;
 
 			if(key === 13){
 				e.preventDefault();
@@ -423,8 +468,49 @@ async function promptUser(msg){
 
 				resolve(value);
 			}
+
+			if(type === "click"){
+				document.body.removeChild(promptContainer);
+
+				if(tag === "input"){
+					const file = el.files[0];
+					const reader = new FileReader();
+
+					reader.readAsDataURL(file);
+					reader.onload = (theFile) => {
+						const name = file.name;
+						const url = theFile.target.result;
+
+						resolve({ url, name, file: theFile });
+					};
+
+					return;
+				}
+
+				resolve(value);
+			}
 		}
 	});
+}
+
+function createPromptInput(type){
+	let input = null;
+
+	if(type === "input"){
+		input = document.createElement("div");
+		input.setAttribute("contenteditable", "true");
+		input.classList.add("prompt-input");
+		input.focus();
+	}
+
+	if(type === "file"){
+		input = document.createElement("input");
+		input.setAttribute("type", "file");
+		input.setAttribute("accept", "image/png, image/jpeg, image/gif, image/svg+xml");
+		input.classList.add("prompt-input");
+	}
+
+	return input;
 }
 
 function createBtn({ name, handler, title, shortcut }){

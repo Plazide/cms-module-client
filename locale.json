@@ -9,7 +9,13 @@
 			"italic": "Italic",
 			"underline": "Underline",
 			"linethrough": "Linethrough",
-			"link": "Insert link"
+			"link": "Insert link",
+			"image": "Insert image"
+		},
+		"prompt": {
+			"link": "Insert a URL",
+			"image": "Select an image",
+			"submit": "Insert"
 		},
 		"elements": {
 			"li": "Item"
@@ -51,7 +57,13 @@
 			"italic": "Kursiv",
 			"underline": "Understruket",
 			"linethrough": "Genomstruket",
-			"link": "Infoga länk"
+			"link": "Infoga länk",
+			"image": "Infoga bild"
+		},
+		"prompt": {
+			"link": "Infoga en länk",
+			"image": "Välj en bild",
+			"submit": "Infoga"
 		},
 		"elements": {
 			"li": "Punkt"

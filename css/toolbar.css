@@ -50,6 +50,9 @@
 #cms-toolbar .cms-link{
 	background: url("./icons/link.svg");
 }
+#cms-toolbar .cms-image{
+	background: url("./icons/image.svg");
+}
 .prompt-container{
 	box-sizing: border-box;
 	padding: 1em;
@@ -65,6 +68,9 @@
 	user-select: none;
 	-webkit-user-select: none;
 }
+.prompt-container h4{
+	margin: 0 0 .8em;
+}
 .prompt-container .prompt-input{
 	box-sizing: border-box;
 	width: 100%;
@@ -78,8 +84,14 @@
 	user-select: none;
 	-webkit-user-select: none;
 }
-.prompt-container h4{
-	margin: 0 0 .8em;
+.prompt-container .cms-submit-btn{
+	margin-top: 15px;
+	padding: .5em 1em;
+	background: #000;
+	color: #e8e8e8;
+	display: inline-block;
+
+	cursor: pointer;
 }
 #cms-toolbar .cms-btn{
 	cursor: pointer;
