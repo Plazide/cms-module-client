@@ -585,8 +585,9 @@ function removeInput(){
 
 function handleAbort(e){
 	const target = e.target.localName !== "li" ? e.target : e.target.parentNode;
+	const ctrl = e.ctrlKey;
 
-	if(shouldAbort(target))
+	if(shouldAbort(target) && !ctrl)
 		removeInput();
 }
 
