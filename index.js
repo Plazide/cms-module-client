@@ -1,12 +1,19 @@
 import "./css/toolbar.css";
 import langs from "./locale.json";
 
+/**
+ * CMS client class. Creates a WYSIWYG editor.
+ */
 class CMS{
+	/**
+	 * Create instance of CMS client.
+	 * @param {object} [options] - Options object for CMS instance.
+	 * @param {string} [options.lang] - The language of the CMS editor.
+	 * @param {string[]} [options.tags] - A list of custom tags to be editable.
+	 */
 	constructor({ lang, tags }){
 		if(!Array.isArray(tags) && tags) throw new TypeError("tags option needs to be an array.");
 		if(!lang) lang = "en";
-
-		console.log(lang);
 
 		// Set the language. If a language code is not provided or is unvalid, english will be used a default.
 		this.locale = langs[lang];
@@ -28,28 +35,28 @@ class CMS{
 			{
 				name: this.locale.shortcuts.save.name,
 				combo: this.locale.shortcuts.save.combo,
-				func: this.saveChanges,
+				func: this.save,
 				global: true
 			},
 			{
 				name: this.locale.shortcuts.bold.name,
 				combo: this.locale.shortcuts.bold.combo,
-				func: this.makeBold
+				func: this._makeBold
 			},
 			{
 				name: this.locale.shortcuts.italic.name,
 				combo: this.locale.shortcuts.italic.combo,
-				func: this.makeItalic
+				func: this._makeItalic
 			},
 			{
 				name: this.locale.shortcuts.underline.name,
 				combo: this.locale.shortcuts.underline.combo,
-				func: this.makeUnderline
+				func: this._makeUnderline
 			},
 			{
 				name: this.locale.shortcuts.linethrough.name,
 				combo: this.locale.shortcuts.linethrough.combo,
-				func: this.makeLinethrough
+				func: this._makeLinethrough
 			},
 			{
 				name: this.locale.shortcuts.link.name,
@@ -71,6 +78,9 @@ class CMS{
 			});
 	}
 
+	/**
+	 * Start the CMS client. This will render a toolbar and make dedicated tags editable.
+	 */
 	run(){
 		const tags = this.tags.join(", ");
 		const elements = document.querySelectorAll(tags);
@@ -87,19 +97,24 @@ class CMS{
 			this.sections.push(cmsElement);
 
 			el.addEventListener("click", (e) => {
-				this.edit(e);
+				this._edit(e);
 			});
 
 			el.addEventListener("keydown", (e) => {
-				this.onKeydown(e);
+				this._onKeydown(e);
 			});
 		}
 
-		this.renderToolbar();
-		document.onkeydown = (e) => this.handleShortcuts(e);
+		this._renderToolbar();
+		document.onkeydown = (e) => this._handleShortcuts(e);
 	}
 
-	handleShortcuts(e){
+	/**
+	 * Handle shortcuts.
+	 * @param {object} e - The event object.
+	 * @private
+	 */
+	_handleShortcuts(e){
 		const combo = [];
 		const ctrl = e.ctrlKey;
 		const shift = e.shiftKey;
@@ -130,7 +145,11 @@ class CMS{
 			}
 	}
 
-	renderToolbar(){
+	/**
+	 * Render the toolbar.
+	 * @private
+	 */
+	_renderToolbar(){
 		const toolbar = document.createElement("div");
 		toolbar.setAttribute("id", "cms-toolbar");
 
@@ -141,41 +160,41 @@ class CMS{
 			name: "save",
 			title: this.locale.tooltips.save,
 			shortcut: this.locale.shortcuts.save,
-			handler: this.saveChanges
+			handler: this.save
 		});
 
 		const bold = createBtn({
 			name: "bold",
 			title: this.locale.tooltips.bold,
 			shortcut: this.locale.shortcuts.bold,
-			handler: this.makeBold
+			handler: this._makeBold
 		});
 
 		const italic = createBtn({
 			name: "italic",
 			title: this.locale.tooltips.italic,
 			shortcut: this.locale.shortcuts.italic,
-			handler: this.makeItalic
+			handler: this._makeItalic
 		});
 
 		const drag = createBtn({
 			name: "drag",
 			title: this.locale.tooltips.drag,
-			handler: this.dragToolbar
+			handler: this._dragToolbar
 		});
 
 		const underline = createBtn({
 			name: "underline",
 			title: this.locale.tooltips.underline,
 			shortcut: this.locale.shortcuts.underline,
-			handler: this.makeUnderline
+			handler: this._makeUnderline
 		});
 
 		const linethrough = createBtn({
 			name: "linethrough",
 			title: this.locale.tooltips.linethrough,
 			shortcut: this.locale.shortcuts.linethrough,
-			handler: this.makeLinethrough
+			handler: this._makeLinethrough
 		});
 
 		const link = createBtn({
@@ -189,7 +208,7 @@ class CMS{
 			name: "image",
 			title: this.locale.tooltips.image,
 			shortcut: this.locale.shortcuts.image,
-			handler: (e) => this.insertImage(e)
+			handler: (e) => this._insertImage(e)
 		});
 
 		flex.appendChild(drag);
@@ -206,7 +225,12 @@ class CMS{
 		this.toolbar = toolbar;
 	}
 
-	findSectionByPath(path){
+	/**
+	 * Find a editable section by its selector path.
+	 * @param {string} path - The path to find a section by.
+	 * @private
+	 */
+	_findSectionByPath(path){
 		const sections = this.sections;
 		let result = null;
 
@@ -217,7 +241,12 @@ class CMS{
 		return result;
 	}
 
-	onKeydown(e){
+	/**
+	 * Handle the keydown event on editable areas.
+	 * @param {object} e - The event object.
+	 * @private
+	 */
+	_onKeydown(e){
 		const key = e.keyCode;
 		const target = e.target;
 		const tagName = target.localName;
@@ -245,25 +274,41 @@ class CMS{
 
 		if(key === 13){
 			e.preventDefault();
-			this.confirmChange(e);
+			this._confirmChange(e);
 		}
 	}
 
-	updateChanges(path, value){
-		const section = this.findSectionByPath(path);
+	/**
+	 * Update changes to the sections object.
+	 * @param {string} path - The path of the section to update.
+	 * @param {string} value - The value that will be inserted.
+	 * @private
+	 */
+	_updateChanges(path, value){
+		const section = this._findSectionByPath(path);
 
 		section.edited_text = value;
 	}
 
-	confirmChange(e){
+	/**
+	 * Confirm changes to a editable area.
+	 * @param {object} e - An event object.
+	 * @private
+	 */
+	_confirmChange(e){
 		const target = e.target;
 		const path = getSelectorPath(target);
 
-		this.updateChanges(path);
+		this._updateChanges(path);
 		removeInput();
 	}
 
-	edit(e){
+	/**
+	 * Make an area editable when clicked.
+	 * @param {object} e - An event object.
+	 * @private
+	 */
+	_edit(e){
 		let el = e.target,
 			i = 0;
 
@@ -313,11 +358,19 @@ class CMS{
 		document.addEventListener("mousedown", handleAbort, { once: true });
 	}
 
-	saveChanges(){
+	/**
+	 * Saves the changes to the specified url or fires a save event that will be handled outside of the class instance.
+	 */
+	save(){
 		console.log("saved");
 	}
 
-	dragToolbar(e){
+	/**
+	 * Handle the dragging of the toolbar.
+	 * @param {object} e - An event object.
+	 * @private
+	 */
+	_dragToolbar(e){
 		const el = e.target;
 		const toolbar = el.parentNode.parentNode;
 
@@ -353,29 +406,52 @@ class CMS{
 		}
 	}
 
-	makeBold(){
+	/**
+	 * Make the selected text bold.
+	 * @private
+	 */
+	_makeBold(){
 		document.execCommand("bold");
 	}
 
-	makeItalic(){
+	/**
+	 * Make the selected text italic.
+	 * @private
+	 */
+	_makeItalic(){
 		document.execCommand("italic");
 	}
 
-	makeUnderline(){
+	/**
+	 * Make the selected text underlined.
+	 * @private
+	 */
+	_makeUnderline(){
 		document.execCommand("underline");
 	}
 
-	makeLinethrough(){
+	/**
+	 * Make the selected text have a line through it.
+	 * @private
+	 */
+	_makeLinethrough(){
 		document.execCommand("strikeThrough");
 	}
 
-	async insertImage(e){
+	/**
+	 * Instert an image at the current position.
+	 * @param {object} e - An event object.
+	 * @private
+	 */
+	async _insertImage(e){
 		e.preventDefault();
 		const titleText = this.locale.prompt.image;
 		const cmdText = "insertHtml";
 		const type = "file";
 
 		const savedSelection = saveSelection();
+		if(!savedSelection) return;
+
 		const result = await promptUser(titleText, type);
 		applySelection(savedSelection);
 
@@ -391,6 +467,11 @@ class CMS{
 		);
 	}
 
+	/**
+	 * Instert link at the current position.
+	 * @param {object} e - An event object.
+	 * @private
+	 */
 	async insertLink(e){
 		e.preventDefault();
 		const titleText = this.locale.prompt.link;
@@ -398,6 +479,8 @@ class CMS{
 		const type = "input";
 
 		const savedSelection = saveSelection();
+		if(!savedSelection) return;
+
 		const link = await promptUser(titleText, type);
 		applySelection(savedSelection);
 
@@ -410,6 +493,10 @@ function saveSelection(){
 	document.execCommand("backColor", false, "#ccc");
 
 	const selection = window.getSelection();
+
+	if(!selection.focusNode)
+		return false;
+
 	const range = document.createRange();
 	const extentOffset = selection.extentOffset;
 	const baseOffset = selection.baseOffset;
@@ -449,6 +536,7 @@ async function promptUser(msg, type){
 		const promptCancel = document.createElement("div");
 		promptCancel.classList.add("prompt-cancel");
 		promptCancel.addEventListener("click", cancelPrompt);
+		document.addEventListener("keydown", cancelPrompt);
 
 		const promptInput = createPromptInput(type);
 		promptInput.addEventListener("keydown", (e) => submitPrompt(e, promptInput));
@@ -466,8 +554,15 @@ async function promptUser(msg, type){
 		document.body.appendChild(promptContainer);
 
 		function cancelPrompt(e){
-			document.body.removeChild(promptContainer);
+			e.stopImmediatePropagation();
+			e.preventDefault();
+			const type = e.type;
+			const key = e.key;
 
+			if(type !== "click" && key !== "esc") return;
+
+			document.body.removeChild(promptContainer);
+			document.removeEventListener("keyup", cancelPrompt);
 			resolve(false);
 		}
 
