@@ -1,21 +1,25 @@
 import "./css/toolbar.css";
 import langs from "./locale.json";
+import EventEmitter from "events";
 
 /**
  * CMS client class. Creates a WYSIWYG editor.
  */
-class CMS{
+class CMS extends EventEmitter{
 	/**
 	 * Create instance of CMS client.
 	 * @param {object} [options] - Options object for CMS instance.
 	 * @param {string} [options.lang] - The language of the CMS editor.
 	 * @param {string[]} [options.tags] - A list of custom tags to be editable.
 	 */
-	constructor({ lang, tags }){
+	constructor({ lang, tags, saveUrl, auth }){
+		super();
 		if(!Array.isArray(tags) && tags) throw new TypeError("tags option needs to be an array.");
 		if(!lang) lang = "en";
 
 		// Set the language. If a language code is not provided or is unvalid, english will be used a default.
+		this.saveUrl = saveUrl;
+		this.auth = auth;
 		this.locale = langs[lang];
 		this.files = [];
 		this.tags = [
@@ -35,7 +39,7 @@ class CMS{
 			{
 				name: this.locale.shortcuts.save.name,
 				combo: this.locale.shortcuts.save.combo,
-				func: this.save,
+				func: (e) => this.save(e),
 				global: true
 			},
 			{
@@ -96,17 +100,113 @@ class CMS{
 			// Save initial state of element.
 			this.sections.push(cmsElement);
 
-			el.addEventListener("click", (e) => {
-				this._edit(e);
-			});
+			el.addEventListener("click", (e) => this._edit(e));
 
-			el.addEventListener("keydown", (e) => {
-				this._onKeydown(e);
-			});
+			el.addEventListener("keydown", (e) => this._onKeydown(e));
 		}
 
 		this._renderToolbar();
 		document.onkeydown = (e) => this._handleShortcuts(e);
+	}
+
+	/**
+	 * Saves the changes to the specified url or fires a save event that will be handled outside of the class instance.
+	 */
+	async save(e){
+		const paths = this.sections.map( section => {
+			return section.path;
+		});
+
+		for(let path of paths){
+			const el = document.querySelector(path);
+			const value = el.innerHTML;
+			const section = this._findSectionByPath(path);
+			section.edited_text = value;
+		}
+
+		// Only save the sections that have benn changed.
+		const sections = this.sections.filter( section => {
+			return section.original_text !== section.edited_text;
+		});
+
+		if(!this.saveUrl){
+			this.emit("save", this.sections);
+			return;
+		}
+
+		const headers = {};
+		headers["Content-Type"] = "application/json";
+
+		if(this.auth)
+			headers["Authorization"] = typeof this.auth === "object" ? JSON.stringify(this.auth) : this.auth;
+
+		const options = {
+			method: "POST",
+			json: true,
+			body: JSON.stringify(sections),
+			headers
+		};
+
+		const response = await fetch(this.saveUrl, options).catch( err => { throw new Error(err); });
+		const result = await response.json();
+
+		console.log(result);
+	}
+
+	/**
+	 * Make an area editable when clicked.
+	 * @param {object} e - An event object.
+	 * @private
+	 */
+	_edit(e){
+		let el = e.target,
+			i = 0;
+
+		const childTags = ["li", "b", "i", "span", "u", "strike", "a"];
+		const path = getSelectorPath(el).split(" ");
+
+		const elements = path.map( (item) => {
+			const tagName = item.split(":")[0].split(".")[0].split("#")[0];
+
+			return tagName;
+		}).filter( (value) => {
+			if(this.tags.indexOf(value) !== -1)
+				return true;
+			else
+				return false;
+		});
+
+		const containsEditableTags = elements.length > 0;
+		if(el.localName === "a"){
+			e.stopImmediatePropagation();
+			e.preventDefault();
+		}
+
+		if(!containsEditableTags)
+			return;
+
+		while(childTags.indexOf(el.localName) !== -1){
+			// Cancel after 40 iterations to avoid infinite loops.
+			if(i >= 40) break;
+
+			if(elements.indexOf(el.localName) !== -1 && childTags.indexOf(el.localName) === -1)
+				break;
+
+			if(elements.indexOf(el.parentNode.localName) !== -1)
+				el = el.parentNode;
+
+			i += 1;
+		}
+
+		el.setAttribute("contenteditable", "true");
+		el.setAttribute("spellcheck", "false");
+		el.setAttribute("autocomplete", "off");
+		el.setAttribute("autocapitalize", "off");
+		el.setAttribute("autocorrect", "off");
+		el.classList.add("cms-input-field");
+		el.focus();
+
+		document.addEventListener("mousedown", handleAbort, { once: true });
 	}
 
 	/**
@@ -153,76 +253,65 @@ class CMS{
 		const toolbar = document.createElement("div");
 		toolbar.setAttribute("id", "cms-toolbar");
 
-		const flex = document.createElement("div");
-		flex.classList.add("flex-container");
+		const grid = document.createElement("div");
+		grid.classList.add("grid-container");
 
-		const save = createBtn({
-			name: "save",
-			title: this.locale.tooltips.save,
-			shortcut: this.locale.shortcuts.save,
-			handler: this.save
-		});
+		const formatting = document.createElement("div");
+		formatting.classList.add("cms-formatting");
 
-		const bold = createBtn({
-			name: "bold",
-			title: this.locale.tooltips.bold,
-			shortcut: this.locale.shortcuts.bold,
-			handler: this._makeBold
-		});
+		const insertion = document.createElement("div");
+		insertion.classList.add("cms-insertion");
 
-		const italic = createBtn({
-			name: "italic",
-			title: this.locale.tooltips.italic,
-			shortcut: this.locale.shortcuts.italic,
-			handler: this._makeItalic
-		});
+		const workflow = document.createElement("div");
+		workflow.classList.add("cms-workflow");
 
-		const drag = createBtn({
-			name: "drag",
-			title: this.locale.tooltips.drag,
-			handler: this._dragToolbar
-		});
+		// Non-editing functions.
+		const drag = this._createBtn({ name: "drag", handler: this._dragToolbar });
+		const save = this._createBtn({ name: "save", handler: (e) => this.save(e) });
 
-		const underline = createBtn({
-			name: "underline",
-			title: this.locale.tooltips.underline,
-			shortcut: this.locale.shortcuts.underline,
-			handler: this._makeUnderline
-		});
+		// Formatting functions.
+		const bold = this._createBtn({ name: "bold", handler: this._makeBold });
+		const italic = this._createBtn({ name: "italic", handler: this._makeItalic });
+		const underline = this._createBtn({ name: "underline", handler: this._makeUnderline });
+		const linethrough = this._createBtn({ name: "linethrough", handler: this._makeLinethrough });
 
-		const linethrough = createBtn({
-			name: "linethrough",
-			title: this.locale.tooltips.linethrough,
-			shortcut: this.locale.shortcuts.linethrough,
-			handler: this._makeLinethrough
-		});
+		// Insertion buttons.
+		const link = this._createBtn({ name: "link", handler: (e) => this.insertLink(e) });
+		const image = this._createBtn({ name: "image", handler: (e) => this._insertImage(e) });
 
-		const link = createBtn({
-			name: "link",
-			title: this.locale.tooltips.link,
-			shortcut: this.locale.shortcuts.link,
-			handler: (e) => this.insertLink(e)
-		});
+		grid.appendChild(drag);
 
-		const image = createBtn({
-			name: "image",
-			title: this.locale.tooltips.image,
-			shortcut: this.locale.shortcuts.image,
-			handler: (e) => this._insertImage(e)
-		});
+		formatting.appendChild(bold);
+		formatting.appendChild(italic);
+		formatting.appendChild(underline);
+		formatting.appendChild(linethrough);
 
-		flex.appendChild(drag);
-		flex.appendChild(bold);
-		flex.appendChild(italic);
-		flex.appendChild(underline);
-		flex.appendChild(linethrough);
-		flex.appendChild(link);
-		flex.appendChild(image);
-		flex.appendChild(save);
-		toolbar.appendChild(flex);
+		insertion.appendChild(link);
+		insertion.appendChild(image);
+
+		workflow.appendChild(save);
+
+		grid.appendChild(formatting);
+		grid.appendChild(insertion);
+		grid.appendChild(workflow);
+		toolbar.appendChild(grid);
 		document.body.appendChild(toolbar);
 
 		this.toolbar = toolbar;
+	}
+
+	_createBtn({ name, handler }){
+		const title = this.locale.tooltips[name];
+		const shortcut = this.locale.shortcuts[name];
+		const combo = shortcut ? ` (${shortcut.combo.join("+")})` : "";
+
+		const btn = document.createElement("div");
+		btn.setAttribute("title", title + combo);
+		btn.classList.add("cms-" + name);
+		btn.classList.add("cms-btn");
+		btn.addEventListener("mousedown", handler);
+
+		return btn;
 	}
 
 	/**
@@ -284,8 +373,9 @@ class CMS{
 	 * @param {string} value - The value that will be inserted.
 	 * @private
 	 */
-	_updateChanges(path, value){
+	_updateChanges(path){
 		const section = this._findSectionByPath(path);
+		const value = document.querySelector(path).innerHTML;
 
 		section.edited_text = value;
 	}
@@ -301,68 +391,6 @@ class CMS{
 
 		this._updateChanges(path);
 		removeInput();
-	}
-
-	/**
-	 * Make an area editable when clicked.
-	 * @param {object} e - An event object.
-	 * @private
-	 */
-	_edit(e){
-		let el = e.target,
-			i = 0;
-
-		const childTags = ["li", "b", "i", "span", "u", "strike", "a"];
-		const path = getSelectorPath(el).split(" ");
-		const elements = path.map( (item) => {
-			const tagName = item.split(".")[0].split("#")[0];
-
-			return tagName;
-		}).filter( (value) => {
-			if(this.tags.indexOf(value) !== -1)
-				return true;
-			else
-				return false;
-		});
-		const containsEditableTags = elements.length > 0;
-
-		if(el.localName === "a"){
-			e.stopImmediatePropagation();
-			e.preventDefault();
-		}
-
-		if(!containsEditableTags)
-			return;
-
-		while(childTags.indexOf(el.localName) !== -1){
-			// Cancel after 40 iterations to avoid infinite loops.
-			if(i >= 40) break;
-
-			if(elements.indexOf(el.localName) !== -1 && childTags.indexOf(el.localName) === -1)
-				break;
-
-			if(elements.indexOf(el.parentNode.localName) !== -1)
-				el = el.parentNode;
-
-			i += 1;
-		}
-
-		el.setAttribute("contenteditable", "true");
-		el.setAttribute("spellcheck", "false");
-		el.setAttribute("autocomplete", "off");
-		el.setAttribute("autocapitalize", "off");
-		el.setAttribute("autocorrect", "off");
-		el.classList.add("cms-input-field");
-		el.focus();
-
-		document.addEventListener("mousedown", handleAbort, { once: true });
-	}
-
-	/**
-	 * Saves the changes to the specified url or fires a save event that will be handled outside of the class instance.
-	 */
-	save(){
-		console.log("saved");
 	}
 
 	/**
@@ -554,52 +582,46 @@ async function promptUser(msg, type){
 		document.body.appendChild(promptContainer);
 
 		function cancelPrompt(e){
-			e.stopImmediatePropagation();
-			e.preventDefault();
 			const type = e.type;
 			const key = e.key;
 
 			if(type !== "click" && key !== "esc") return;
+			e.stopImmediatePropagation();
+			e.preventDefault();
 
 			document.body.removeChild(promptContainer);
-			document.removeEventListener("keyup", cancelPrompt);
+			document.removeEventListener("keydown", cancelPrompt);
 			resolve(false);
 		}
 
 		function submitPrompt(e, el){
 			const target = el;
-			const key = e.keyCode;
+			const key = e.key ? e.key.toLowerCase() : null;
 			const type = e.type;
 			const tag = el.localName;
 			let value = target.innerText;
 
-			if(key === 13){
-				e.preventDefault();
-				document.body.removeChild(promptContainer);
+			if(key !== "enter" && type !== "click") return;
+			e.preventDefault();
+			document.body.removeChild(promptContainer);
 
-				resolve(value);
+			if(tag === "input"){
+				const file = el.files[0];
+				const reader = new FileReader();
+
+				reader.readAsDataURL(file);
+				reader.onload = (theFile) => {
+					const name = file.name;
+					const url = theFile.target.result;
+
+					resolve({ url, name, file: theFile });
+				};
+
+				// Return to avoid resolving twice.
+				return;
 			}
 
-			if(type === "click"){
-				document.body.removeChild(promptContainer);
-
-				if(tag === "input"){
-					const file = el.files[0];
-					const reader = new FileReader();
-
-					reader.readAsDataURL(file);
-					reader.onload = (theFile) => {
-						const name = file.name;
-						const url = theFile.target.result;
-
-						resolve({ url, name, file: theFile });
-					};
-
-					return;
-				}
-
-				resolve(value);
-			}
+			resolve(value);
 		}
 	});
 }
@@ -624,20 +646,18 @@ function createPromptInput(type){
 	return input;
 }
 
-function createBtn({ name, handler, title, shortcut }){
-	const btn = document.createElement("div");
-	const combo = shortcut ? ` (${shortcut.combo.join("+")})` : "";
-	btn.setAttribute("title", title + combo);
-	btn.classList.add("cms-" + name);
-	btn.classList.add("cms-btn");
-	btn.addEventListener("mousedown", handler);
-
-	return btn;
-}
-
 function getSelectorPath(el){
 	const top = "body";
-	let path = getSelector(el),
+	const children = el.parentNode.children;
+	let nthChild = 0;
+
+	for(let i = 0; i < children.length; i++){
+		const child = children[i];
+		if(child === el)
+			nthChild = i + 1;
+	}
+
+	let path = getSelector(el).trim() + `:nth-child(${nthChild}) `,
 		parent = el.parentNode,
 		i = 0;
 
@@ -668,11 +688,16 @@ function getSelector(el){
 	let selector = el.localName;
 
 	if(!selector) return;
+	const classList = [...el.classList];
+	const index = classList.indexOf("cms-input-field");
+
+	if(index !== -1)
+		classList.splice(index, 1);
 
 	if(el.id)
 		selector += "#" + el.id;
-	else if(el.classList.length > 0 && !el.classList.contains("cms-input-field"))
-		selector += "." + el.className.split(" ").join(".");
+	else if(classList.length > 0)
+		selector += "." + classList.join(".");
 
 	return selector + " ";
 }

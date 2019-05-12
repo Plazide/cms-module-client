@@ -3,7 +3,7 @@
 	left: 25%;
 	top: 90%;
 
-	height: 50px;
+	height: 60px;
 	background: #e8e8e8;
 	border: 2px solid #888;
 	border-radius: 50px;
@@ -11,24 +11,17 @@
 
 	box-shadow: 0 5px 15px #777;
 }
-#cms-toolbar .flex-container{
-	height: 100%;
-	width: 50%;
-	margin: auto;
-
-	display: flex;
-	flex-direction: row;
-	flex-wrap: nowrap;
-
-	justify-content: space-around;
-	align-items: center;
-}
-#cms-toolbar .cms-drag{
+#cms-toolbar .cms-drag.cms-btn{
 	background: url("./icons/drag.svg");
+	width: 36px;
+	height: 36px;
+	margin-top: calc((60px - 36px) / 2);
 
 	position: absolute;
 	left: 0;
 	opacity: .7;
+	background-size: cover;
+	background-repeat: no-repeat;
 
 	user-select: none;
 }
@@ -53,6 +46,55 @@
 #cms-toolbar .cms-image{
 	background: url("./icons/image.svg");
 }
+#cms-toolbar .cms-btn{
+	cursor: pointer;
+	width: 26px;
+	height: 26px;
+	user-select: none;
+	-webkit-user-select: none;
+
+	margin: 0 .2em;
+
+	background-size: cover;
+	background-repeat: no-repeat;
+}
+#cms-toolbar .cms-workflow .cms-btn{
+	width: 36px;
+	height: 36px;
+}
+#cms-toolbar .grid-container{
+	box-sizing: border-box;
+	height: 100%;
+	width: 100%;
+	padding: 0 3em;
+
+	display: grid;
+	grid-template-areas: 
+		"formatting workflow"
+		"insertion workflow";
+	align-items: center;
+	grid-column-gap: 1em;
+}
+.cms-formatting, .cms-insertion, .cms-workflow{
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	align-items: center;
+}
+.cms-formatting{
+	grid-area: formatting;
+	grid-row: 1;
+}
+.cms-insertion{
+	grid-area: insertion;
+	grid-row: 2;
+}
+.cms-workflow{
+	grid-area: workflow;
+	grid-row: 1/3;
+	justify-content: flex-end;
+}
+
 .prompt-container{
 	box-sizing: border-box;
 	padding: 1em;
@@ -105,16 +147,6 @@
 	-webkit-user-select: none;
 
 	cursor: pointer;
-}
-#cms-toolbar .cms-btn{
-	cursor: pointer;
-	width: 36px;
-	height: 36px;
-	user-select: none;
-	-webkit-user-select: none;
-
-	background-size: cover;
-	background-repeat: no-repeat;
 }
 
 .cms-input-field{
