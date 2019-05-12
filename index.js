@@ -124,11 +124,13 @@ class CMS extends EventEmitter{
 			section.edited_text = value;
 		}
 
-		// Only save the sections that have benn changed.
+		// Only save the sections that have been changed.
 		const sections = this.sections.filter( section => {
 			return section.original_text !== section.edited_text;
 		});
 
+		// If no saveUrl was specified, fire the save event with the edited sections
+		// and let the user of the module handle the saving of the data.
 		if(!this.saveUrl){
 			this.emit("save", this.sections);
 			return;
@@ -151,11 +153,13 @@ class CMS extends EventEmitter{
 
 		if(!response.ok)
 			this._error({ status: response.status, msg: response.statusText, type: "save" });
+
+		this.emit("save", { success: true });
 	}
 
 	/**
 	 * Handle errors.
-	 * @param {*} err - The error msg.
+	 * @param {object} err - The error msg.
 	 */
 	_error(err){
 		this.emit("error", err);
