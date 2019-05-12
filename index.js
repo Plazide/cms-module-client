@@ -147,10 +147,18 @@ class CMS extends EventEmitter{
 			headers
 		};
 
-		const response = await fetch(this.saveUrl, options).catch( err => { throw new Error(err); });
-		const result = await response.json();
+		const response = await fetch(this.saveUrl, options).catch( err => this._error(err));
 
-		console.log(result);
+		if(!response.ok)
+			this._error({ status: response.status, msg: response.statusText, type: "save" });
+	}
+
+	/**
+	 * Handle errors.
+	 * @param {*} err - The error msg.
+	 */
+	_error(err){
+		this.emit("error", err);
 	}
 
 	/**
