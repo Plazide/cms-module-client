@@ -150,11 +150,14 @@ class CMS extends EventEmitter{
 		};
 
 		const response = await fetch(this.saveUrl, options).catch( err => this._error(err));
+		const statusMsg = { status: response.status, msg: response.statusText };
 
-		if(!response.ok)
-			this._error({ status: response.status, msg: response.statusText, type: "save" });
+		if(!response.ok){
+			this._error({ ...statusMsg, success: false, type: "save" });
+			return;
+		}
 
-		this.emit("save", { success: true });
+		this.emit("save", { ...statusMsg, success: true });
 	}
 
 	/**
