@@ -12,15 +12,17 @@ class CMS extends EventEmitter{
 	 * @param {string} [options.lang] - The language of the CMS editor.
 	 * @param {string[]} [options.tags] - A list of custom tags to be editable.
 	 */
-	constructor({ lang, tags, saveUrl, auth }){
+	constructor({ lang, tags, saveUrl, publishUrl, auth }){
 		super();
 		if(!Array.isArray(tags) && tags) throw new TypeError("tags option needs to be an array.");
 		if(!lang) lang = "en";
 
 		// Set the language. If a language code is not provided or is unvalid, english will be used a default.
+		this.locale = langs[lang] || langs.en;
+
 		this.saveUrl = saveUrl;
+		this.publishUrl = publishUrl;
 		this.auth = auth;
-		this.locale = langs[lang];
 		this.files = [];
 		this.tags = [
 			"a",
@@ -174,6 +176,12 @@ class CMS extends EventEmitter{
 	 */
 	publish(){
 		const hasChanged = this._changedSinceSave();
+
+		if(!hasChanged) return;
+
+		const sections = this.sections.filter( section => {
+			return section.original_text !== section.edited_text;
+		});
 	}
 
 	_setLoading(){
