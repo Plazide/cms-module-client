@@ -110,6 +110,7 @@ class CMS extends EventEmitter{
 
 		this._renderToolbar();
 		this._setSaveStatus();
+		this._setPublishStatus();
 		document.onkeydown = (e) => this._handleShortcuts(e);
 	}
 
@@ -158,30 +159,70 @@ class CMS extends EventEmitter{
 		};
 
 		const response = await fetch(this.saveUrl, options).catch( err => this._error(err));
-		const result = await response.json();
 		const statusMsg = { status: response.status, msg: response.statusText };
 		this._removeLoading();
 
 		if(!response.ok){
+			if(response.status === 404)
+				console.error("The provided save url doesn't seem to be an actual endpoint.");
+
 			this._error({ ...statusMsg, success: false, type: "save" });
 			return;
 		}
 
+		const result = await response.json();
 		this._setSavedChanges(result.sections);
+		this._setPublishStatus(result.sections);
 		this.emit("save", { ...statusMsg, success: true });
 	}
 
 	/**
 	 * Makes the saved changes public.
 	 */
-	publish(){
-		const hasChanged = this._changedSinceSave();
+	async publish(){
+		const hasChanged = this._changedSincePublish();
 
 		if(!hasChanged) return;
 
+		this._setLoading();
 		const sections = this.sections.filter( section => {
 			return section.original_text !== section.edited_text;
 		});
+
+		if(!this.publishUrl){
+			this.emit("publish", sections);
+			return;
+		}
+
+		const headers = {};
+		headers["Content-Type"] = "application/json";
+
+		if(this.auth)
+			headers["Authorization"] = typeof this.auth === "object" ? JSON.stringify(this.auth) : this.auth;
+
+		const options = {
+			method: "POST",
+			json: true,
+			body: JSON.stringify(sections),
+			headers
+		};
+
+		const response = await fetch(this.publishUrl, options).catch( err => this._error(err));
+		const statusMsg = { status: response.status, msg: response.statusText };
+		this._removeLoading();
+
+		if(!response.ok){
+			if(response.status === 404)
+				console.error("The provided publish url doesn't seem to be an actual endpoint.");
+
+			this._error({ ...statusMsg, success: false, type: "publish" });
+			return;
+		}
+
+		const result = await response.json();
+		this._setPublishedChanges(result.sections);
+		this._setSavedChanges(result.sections);
+		this.emit("publish", { ...statusMsg, success: true });
 	}
 
 	_setLoading(){
@@ -283,13 +324,43 @@ class CMS extends EventEmitter{
 		const title = `${this.locale.shortcuts.save.name} (${this.locale.shortcuts.save.combo.join("+")})`;
 
 		if(hasChanged){
-			saveIcon.title = title + " " + this.locale.hints.unsaved;
+			saveIcon.title = title + " - " + this.locale.hints.unsaved;
 			saveIcon.setAttribute("disabled", "");
-			saveIcon.classList.remove("saved");
+			saveIcon.classList.remove("inactive");
 		}else {
 			saveIcon.removeAttribute("disabled");
-			saveIcon.title = title + " " + this.locale.hints.saved;
-			saveIcon.classList.add("saved");
+			saveIcon.title = title + " - " + this.locale.hints.saved;
+			saveIcon.classList.add("inactive");
+		}
+	}
+
+	/**
+	 * Check if content has changed since last publish
+	 */
+	_changedSincePublish(){
+		const sections = [...this.sections];
+		let changed = false;
+
+		for(let section of sections)
+			if(section.original_text !== section.saved_text)
+				changed = true;
+
+		return changed;
+	}
+
+	_setPublishStatus(){
+		const hasChanged = this._changedSincePublish();
+		const saveIcon = this.toolbar.querySelector(".cms-publish");
+		const title = `${this.locale.tooltips.publish}`;
+
+		if(hasChanged){
+			saveIcon.title = title + " - " + this.locale.hints.unpublished;
+			saveIcon.setAttribute("disabled", "true");
+			saveIcon.classList.remove("inactive");
+		}else {
+			saveIcon.removeAttribute("disabled");
+			saveIcon.title = title + " - " + this.locale.hints.published;
+			saveIcon.classList.add("inactive");
 		}
 	}
 
@@ -352,7 +423,7 @@ class CMS extends EventEmitter{
 		// Non-editing functions.
 		const drag = this._createBtn({ name: "drag", handler: this._dragToolbar });
 		const save = this._createBtn({ name: "save", handler: (e) => this.save(e) });
-		const publish = this._createBtn({ name: "publish", handler: this.publish });
+		const publish = this._createBtn({ name: "publish", handler: (e) => this.publish(e) });
 
 		// Formatting functions.
 		const bold = this._createBtn({ name: "bold", handler: this._makeBold });
@@ -478,6 +549,19 @@ class CMS extends EventEmitter{
 		}
 
 		this._setSaveStatus();
+	}
+
+	_setPublishedChanges(sections){
+		for(let section of sections){
+			const content = section.content;
+			const path = section.path;
+			const localSection = this._findSectionByPath(path);
+
+			localSection.saved_text = content;
+			localSection.original_text = content;
+		}
+
+		this._setPublishStatus();
 	}
 
 	/**

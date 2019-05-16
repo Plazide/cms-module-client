@@ -64,7 +64,7 @@ html.loading{
 	background-size: cover;
 	background-repeat: no-repeat;
 }
-#cms-toolbar .saved{
+#cms-toolbar .inactive{
 	opacity: .6;
 	cursor: default;
 }

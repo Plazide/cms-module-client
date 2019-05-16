@@ -15,7 +15,9 @@
 		},
 		"hints": {
 			"unsaved": "Unsaved changes",
-			"saved": "No changes"
+			"saved": "No changes",
+			"unpublished": "Unpublished changes",
+			"published": "No unpublished changes"
 		},
 		"prompt": {
 			"link": "Insert a URL",
@@ -68,7 +70,9 @@
 		},
 		"hints": {
 			"unsaved": "Osparade ändringar",
-			"saved": "Inga osparade ändringar"
+			"saved": "Inga osparade ändringar",
+			"unpublished": "Opublicerade ändringar",
+			"published": "Inga opublicerade ändringar"
 		},
 		"prompt": {
 			"link": "Infoga en länk",
