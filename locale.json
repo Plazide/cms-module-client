@@ -5,12 +5,17 @@
 		"tooltips": {
 			"drag": "Move toolbar",
 			"save": "Save changes",
+			"publish": "Publish changes",
 			"bold": "Bold",
 			"italic": "Italic",
 			"underline": "Underline",
 			"linethrough": "Linethrough",
 			"link": "Insert link",
 			"image": "Insert image"
+		},
+		"hints": {
+			"unsaved": "Unsaved changes",
+			"saved": "No changes"
 		},
 		"prompt": {
 			"link": "Insert a URL",
@@ -53,12 +58,17 @@
 		"tooltips": {
 			"drag": "Flytta verktygslådan",
 			"save": "Spara ändringar",
+			"publish": "Publicera ändringar",
 			"bold": "Fet",
 			"italic": "Kursiv",
 			"underline": "Understruket",
 			"linethrough": "Genomstruket",
 			"link": "Infoga länk",
 			"image": "Infoga bild"
+		},
+		"hints": {
+			"unsaved": "Osparade ändringar",
+			"saved": "Inga osparade ändringar"
 		},
 		"prompt": {
 			"link": "Infoga en länk",

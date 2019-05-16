@@ -91,8 +91,9 @@ class CMS extends EventEmitter{
 
 		for(const el of elements){
 			const cmsElement = {
-				original_text: el.innerText,
+				original_text: el.innerHTML,
 				edited_text: "",
+				saved_text: "",
 				path: getSelectorPath(el),
 				page: window.location.pathname
 			};
@@ -106,6 +107,7 @@ class CMS extends EventEmitter{
 		}
 
 		this._renderToolbar();
+		this._setSaveStatus();
 		document.onkeydown = (e) => this._handleShortcuts(e);
 	}
 
@@ -113,6 +115,10 @@ class CMS extends EventEmitter{
 	 * Saves the changes to the specified url or fires a save event that will be handled outside of the class instance.
 	 */
 	async save(e){
+		if(!this._changedSinceSave())
+			return;
+
+		this._setLoading();
 		const paths = this.sections.map( section => {
 			return section.path;
 		});
@@ -126,7 +132,7 @@ class CMS extends EventEmitter{
 
 		// Only save the sections that have been changed.
 		const sections = this.sections.filter( section => {
-			return section.original_text !== section.edited_text;
+			return section.saved_text !== section.edited_text;
 		});
 
 		// If no saveUrl was specified, fire the save event with the edited sections
@@ -150,14 +156,36 @@ class CMS extends EventEmitter{
 		};
 
 		const response = await fetch(this.saveUrl, options).catch( err => this._error(err));
+		const result = await response.json();
 		const statusMsg = { status: response.status, msg: response.statusText };
+		this._removeLoading();
 
 		if(!response.ok){
 			this._error({ ...statusMsg, success: false, type: "save" });
 			return;
 		}
 
+		this._setSavedChanges(result.sections);
 		this.emit("save", { ...statusMsg, success: true });
+	}
+
+	/**
+	 * Makes the saved changes public.
+	 */
+	publish(){
+		const hasChanged = this._changedSinceSave();
+	}
+
+	_setLoading(){
+		const html = document.querySelector("html");
+
+		html.classList.add("loading");
+	}
+
+	_removeLoading(){
+		const html = document.querySelector("html");
+
+		html.classList.remove("loading");
 	}
 
 	/**
@@ -221,7 +249,40 @@ class CMS extends EventEmitter{
 		el.classList.add("cms-input-field");
 		el.focus();
 
-		document.addEventListener("mousedown", handleAbort, { once: true });
+		document.addEventListener("mousedown", (e) => this._handleAbort(e), { once: true });
+	}
+
+	/**
+	 * Check whether a change has been made since the last save.
+	 */
+	_changedSinceSave(){
+		const sections = [...this.sections];
+		let changed = false;
+
+		for(let section of sections)
+			if(section.saved_text !== section.edited_text)
+				changed = true;
+
+		return changed;
+	}
+
+	/**
+	 * Set the current status of the save icon.
+	 */
+	_setSaveStatus(){
+		const hasChanged = this._changedSinceSave();
+		const saveIcon = this.toolbar.querySelector(".cms-save");
+		const title = `${this.locale.shortcuts.save.name} (${this.locale.shortcuts.save.combo.join("+")})`;
+
+		if(hasChanged){
+			saveIcon.title = title + " " + this.locale.hints.unsaved;
+			saveIcon.setAttribute("disabled", "");
+			saveIcon.classList.remove("saved");
+		}else {
+			saveIcon.removeAttribute("disabled");
+			saveIcon.title = title + " " + this.locale.hints.saved;
+			saveIcon.classList.add("saved");
+		}
 	}
 
 	/**
@@ -283,6 +344,7 @@ class CMS extends EventEmitter{
 		// Non-editing functions.
 		const drag = this._createBtn({ name: "drag", handler: this._dragToolbar });
 		const save = this._createBtn({ name: "save", handler: (e) => this.save(e) });
+		const publish = this._createBtn({ name: "publish", handler: this.publish });
 
 		// Formatting functions.
 		const bold = this._createBtn({ name: "bold", handler: this._makeBold });
@@ -305,6 +367,7 @@ class CMS extends EventEmitter{
 		insertion.appendChild(image);
 
 		workflow.appendChild(save);
+		workflow.appendChild(publish);
 
 		grid.appendChild(formatting);
 		grid.appendChild(insertion);
@@ -357,7 +420,7 @@ class CMS extends EventEmitter{
 
 		// If user pressed escape, cancel the edit.
 		if(key === 27)
-			removeInput();
+			this._removeInput();
 
 		// If the user is holding the shift key, don't confirm the change.
 		// Use the default action instead, which is creating a new line.
@@ -393,6 +456,20 @@ class CMS extends EventEmitter{
 		const value = document.querySelector(path).innerHTML;
 
 		section.edited_text = value;
+		this._setSaveStatus();
+	}
+
+	_setSavedChanges(sections){
+		for(let section of sections){
+			const content = section.content;
+			const path = section.path;
+			const localSection = this._findSectionByPath(path);
+
+			localSection.saved_text = content;
+			localSection.edited_text = content;
+		}
+
+		this._setSaveStatus();
 	}
 
 	/**
@@ -401,11 +478,11 @@ class CMS extends EventEmitter{
 	 * @private
 	 */
 	_confirmChange(e){
-		const target = e.target;
+		const target = document.querySelector(".cms-input-field");
 		const path = getSelectorPath(target);
 
 		this._updateChanges(path);
-		removeInput();
+		this._removeInput();
 	}
 
 	/**
@@ -447,6 +524,23 @@ class CMS extends EventEmitter{
 			window.removeEventListener("mouseup", removeListeners);
 			el.removeEventListener("blur", removeListeners);
 		}
+	}
+
+	_removeInput(){
+		const inputs = document.querySelectorAll(".cms-input-field");
+
+		for(let input of inputs){
+			input.removeAttribute("contenteditable");
+			input.classList.remove("cms-input-field");
+		}
+	}
+
+	_handleAbort(e){
+		const target = e.target.localName !== "li" ? e.target : e.target.parentNode;
+		const ctrl = e.ctrlKey;
+
+		if(shouldAbort(target) && !ctrl)
+			this._confirmChange();
 	}
 
 	/**
@@ -722,24 +816,6 @@ function reverseStr(str, sep){
 	const result = list.reverse().join(sep);
 
 	return result;
-}
-
-function removeInput(){
-	const inputs = document.querySelectorAll(".cms-input-field");
-
-	for(let input of inputs){
-		input.removeAttribute("contenteditable");
-		input.classList.remove("cms-input-field");
-		input.removeEventListener("mousedown", handleAbort);
-	}
-}
-
-function handleAbort(e){
-	const target = e.target.localName !== "li" ? e.target : e.target.parentNode;
-	const ctrl = e.ctrlKey;
-
-	if(shouldAbort(target) && !ctrl)
-		removeInput();
 }
 
 function shouldAbort(target){
