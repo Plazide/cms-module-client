@@ -12,7 +12,7 @@ class CMS extends EventEmitter{
 	 * @param {string} [options.lang] - The language of the CMS editor.
 	 * @param {string[]} [options.tags] - A list of custom tags to be editable.
 	 */
-	constructor({ lang, tags, saveUrl, publishUrl, auth }){
+	constructor({ lang, tags, saveUrl, publishUrl, uploadUrl, auth }){
 		super();
 		if(!Array.isArray(tags) && tags) throw new TypeError("tags option needs to be an array.");
 		if(!lang) lang = "en";
@@ -22,6 +22,7 @@ class CMS extends EventEmitter{
 
 		this.saveUrl = saveUrl;
 		this.publishUrl = publishUrl;
+		this.uploadUrl = uploadUrl;
 		this.auth = auth;
 		this.files = [];
 		this.tags = [
@@ -223,6 +224,40 @@ class CMS extends EventEmitter{
 		this._setPublishedChanges(result.sections);
 		this._setSavedChanges(result.sections);
 		this.emit("publish", { ...statusMsg, success: true });
+	}
+
+	async _upload(file){
+		this._setLoading();
+
+		const data = new FormData();
+		const headers = {};
+		headers["Content-Type"] = "multitype/form-data";
+
+		if(this.auth)
+			headers["Authorization"] = typeof this.auth === "object" ? JSON.stringify(this.auth) : this.auth;
+
+		data.append("file", file);
+		const options = {
+			method: "POST",
+			body: file,
+			headers
+		};
+
+		const response = await fetch(this.uploadUrl, options).catch( err => this._error(err));
+		const statusMsg = { status: response.status, msg: response.statusText };
+		this._removeLoading();
+
+		if(!response.ok){
+			if(response.status === 404)
+				console.error("The provided file url doesn't seem to be an actual endpoint.");
+
+			this._error({ ...statusMsg, success: false, type: "upload" });
+			return null;
+		}
+
+		const result = await response.json();
+		this.emit("upload", { ...statusMsg, success: true });
+		return result.path;
 	}
 
 	_setLoading(){
@@ -687,7 +722,8 @@ class CMS extends EventEmitter{
 		if(!result) return;
 
 		const{ url, name, file } = result;
-		this.files.push(file);
+		const filePath = this._upload(file);
+		this.files.push(filePath);
 
 		document.execCommand(
 			cmdText,
@@ -815,7 +851,7 @@ async function promptUser(msg, type){
 					const name = file.name;
 					const url = theFile.target.result;
 
-					resolve({ url, name, file: theFile });
+					resolve({ url, name, file });
 				};
 
 				// Return to avoid resolving twice.
