@@ -3,15 +3,11 @@
   "version": "0.1.0",
   "description": "An editor for html pages. This is the client side part of the JS CMS module tool. It lets you edit a webpage in a WYSIWYG way. Together with the Server side module, it creates nicely integrated content management system for Node JS.",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "scripts": {},
   "keywords": [],
   "author": "Carl Hallén",
   "license": "ISC",
-  "dependencies": {
-    "draggable": "^4.2.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "eslint": "^5.16.0",
     "eslint-config-plazide": "^0.1.1"
