@@ -21,7 +21,7 @@ cms.run();
 As you probably noticed, the package uses import syntax, which means that you need a javascript bundler of some sort. [Webpack](https://webpack.js.org/guides/installation) is recommended, but [other bundlers](https://medium.com/@ajmeyghani/javascript-bundlers-a-comparison-e63f01f2a364#b306) are also available.
 
 ## Security
-As you would expect, when using a CMS system, security is a very important component. It should not be possibly for ordinary users to access the CMS editor or successfully make a request to the CMS endpoints. It is therefore strongly recommended that you have some kind of login system for administrators when using this module. The authnetication of users is not handled what so ever on in the module, this responsibility is completely on you, as the developer of the service or website, to implement.
+As you would expect, when using a CMS system, security is a very important component. It should not be possibly for ordinary users to access the CMS editor or successfully make a request to the CMS endpoints. It is therefore strongly recommended that you have some kind of login system for administrators when using this module. The authnetication of users is not handled what so ever in the module, this responsibility is completely on you, as the developer of the service or website, to implement.
 
 On the client, a simple way of athentication would be to specify the auth option in the CMS class to be the current session id.
 
