@@ -493,6 +493,10 @@ class CMS extends EventEmitter{
 		toolbar.appendChild(grid);
 		document.body.appendChild(toolbar);
 
+		const toolbarPos = storageGet("toolbarPos");
+		toolbar.style.setProperty("left", toolbarPos.x);
+		toolbar.style.setProperty("top", toolbarPos.y);
+
 		this.toolbar = toolbar;
 	}
 
@@ -626,8 +630,8 @@ class CMS extends EventEmitter{
 		const toolbar = el.parentNode.parentNode;
 
 		window.addEventListener("mousemove", move);
-		window.addEventListener("mouseup", removeListeners);
-		el.addEventListener("blur", removeListeners);
+		window.addEventListener("mouseup", done);
+		el.addEventListener("blur", done);
 
 		function move(e){
 			const mouseX = e.clientX;
@@ -650,10 +654,15 @@ class CMS extends EventEmitter{
 				toolbar.style.top = posY + "px";
 		}
 
-		function removeListeners(){
+		function done(){
+			const posX = window.getComputedStyle(toolbar).left;
+			const posY = window.getComputedStyle(toolbar).top;
+
 			window.removeEventListener("mousemove", move);
-			window.removeEventListener("mouseup", removeListeners);
-			el.removeEventListener("blur", removeListeners);
+			window.removeEventListener("mouseup", done);
+			el.removeEventListener("blur", done);
+
+			storageSave("toolbarPos", { x: posX, y: posY });
 		}
 	}
 
@@ -963,6 +972,27 @@ function navigateViaLink(el){
 	const href = el.href;
 
 	window.location.href = href;
+}
+
+function storageGet(name){
+	let data = window.localStorage.getItem(name);
+
+	data = JSON.parse(data) || data;
+
+	return data;
+}
+
+function storageSave(name, data){
+	if(!data)
+		throw new Error("data is undefined");
+
+	if(!name)
+		throw new Error("name is undefined");
+
+	if(typeof data === "object")
+		data = JSON.stringify(data);
+
+	window.localStorage.setItem(name, data);
 }
 
 export default CMS;
