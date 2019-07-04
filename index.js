@@ -497,7 +497,7 @@ class CMS extends EventEmitter{
 		const shortcut = this.locale.shortcuts[name];
 		const combo = shortcut ? ` (${shortcut.combo.join("+")})` : "";
 
-		const btn = document.createElement("div");
+		const btn = document.createElement("button");
 		btn.setAttribute("title", title + combo);
 		btn.classList.add("cms-" + name);
 		btn.classList.add("cms-btn");

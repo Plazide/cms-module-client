@@ -24,8 +24,6 @@ html.loading{
 	opacity: .7;
 	background-size: cover;
 	background-repeat: no-repeat;
-
-	user-select: none;
 }
 #cms-toolbar .cms-save{
 	background: url("./icons/save.svg");
@@ -55,13 +53,14 @@ html.loading{
 	cursor: pointer;
 	width: 26px;
 	height: 26px;
-	user-select: none;
-	-webkit-user-select: none;
 
 	margin: 0 .2em;
 
 	background-size: cover;
 	background-repeat: no-repeat;
+	box-shadow: none;
+	border: none;
+	outline: none;
 }
 #cms-toolbar .inactive{
 	opacity: .6;
