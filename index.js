@@ -286,8 +286,12 @@ class CMS extends EventEmitter{
 	 * @private
 	 */
 	_edit(e){
+		const ctrl = e.ctrlKey;
 		let el = e.target,
 			i = 0;
+
+		if(ctrl && el.localName === "a")
+			navigateViaLink(el);
 
 		const childTags = ["li", "b", "i", "span", "u", "strike", "a"];
 		const path = getSelectorPath(el).split(" ");
@@ -953,6 +957,12 @@ function shouldAbort(target){
 					!target.classList.contains("prompt-input");
 
 	return should;
+}
+
+function navigateViaLink(el){
+	const href = el.href;
+
+	window.location.href = href;
 }
 
 export default CMS;
