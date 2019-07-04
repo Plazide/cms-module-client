@@ -68,7 +68,7 @@ class CMS extends EventEmitter{
 			{
 				name: this.locale.shortcuts.link.name,
 				combo: this.locale.shortcuts.link.combo,
-				func: (e) => this.insertLink(e)
+				func: (e) => this._insertLink(e)
 			}
 		];
 
@@ -467,7 +467,7 @@ class CMS extends EventEmitter{
 		const linethrough = this._createBtn({ name: "linethrough", handler: this._makeLinethrough });
 
 		// Insertion buttons.
-		const link = this._createBtn({ name: "link", handler: (e) => this.insertLink(e) });
+		const link = this._createBtn({ name: "link", handler: (e) => this._insertLink(e) });
 		const image = this._createBtn({ name: "image", handler: (e) => this._insertImage(e) });
 
 		grid.appendChild(drag);
@@ -737,8 +737,9 @@ class CMS extends EventEmitter{
 	 * @param {object} e - An event object.
 	 * @private
 	 */
-	async insertLink(e){
+	async _insertLink(e){
 		e.preventDefault();
+		e.stopImmediatePropagation();
 		const titleText = this.locale.prompt.link;
 		const cmdText = "createLink";
 		const type = "input";
@@ -757,27 +758,25 @@ class CMS extends EventEmitter{
 function saveSelection(){
 	document.execCommand("backColor", false, "#ccc");
 
-	const selection = window.getSelection();
-
-	if(!selection.focusNode)
-		return false;
-
-	const range = document.createRange();
-	const extentOffset = selection.extentOffset;
-	const baseOffset = selection.baseOffset;
-	const focusNode = selection.focusNode;
-	const startIndex = extentOffset < baseOffset ? extentOffset : baseOffset;
-	const endIndex = extentOffset < baseOffset ? baseOffset : extentOffset;
-
-	range.setStart(focusNode, startIndex);
-	range.setEnd(focusNode, endIndex);
-
-	return{ range, selection };
+	if(window.getSelection) {
+		var sel = window.getSelection();
+		if(sel.getRangeAt && sel.rangeCount)
+			return sel.getRangeAt(0);
+	}else if(document.selection && document.selection.createRange) {
+		return document.selection.createRange();
+	}
+	return null;
 }
 
-function applySelection({ range, selection }){
-	selection.removeAllRanges();
-	selection.addRange(range);
+function applySelection(range){
+	if(range)
+		if(window.getSelection) {
+			var sel = window.getSelection();
+			sel.removeAllRanges();
+			sel.addRange(range);
+		}else if(document.selection && range.select) {
+			range.select();
+		}
 
 	document.execCommand("backColor", false, "transparent");
 }
@@ -817,12 +816,13 @@ async function promptUser(msg, type){
 		promptContainer.appendChild(promptSubmit);
 
 		document.body.appendChild(promptContainer);
+		promptInput.focus();
 
 		function cancelPrompt(e){
 			const type = e.type;
 			const key = e.key;
 
-			if(type !== "click" && key !== "esc") return;
+			if(type !== "click" && key !== "Escape") return;
 			e.stopImmediatePropagation();
 			e.preventDefault();
 
