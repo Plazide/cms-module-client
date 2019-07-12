@@ -4,7 +4,11 @@
   "description": "An editor for html pages. This is the client side part of the JS CMS module tool. It lets you edit a webpage in a WYSIWYG way. Together with the Server side module, it creates nicely integrated content management system for Node JS.",
   "main": "index.js",
   "scripts": {},
-  "keywords": ["cms", "editor", "WYSIWYG"],
+  "keywords": [
+    "cms",
+    "editor",
+    "WYSIWYG"
+  ],
   "author": "Carl Hallén",
   "license": "ISC",
   "dependencies": {},
