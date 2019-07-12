@@ -494,8 +494,10 @@ class CMS extends EventEmitter{
 		document.body.appendChild(toolbar);
 
 		const toolbarPos = storageGet("toolbarPos");
-		toolbar.style.setProperty("left", toolbarPos.x);
-		toolbar.style.setProperty("top", toolbarPos.y);
+		if(toolbarPos){
+			toolbar.style.setProperty("left", toolbarPos.x);
+			toolbar.style.setProperty("top", toolbarPos.y);
+		}
 
 		this.toolbar = toolbar;
 	}
