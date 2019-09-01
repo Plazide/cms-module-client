@@ -3,7 +3,7 @@
  * Gets the full selector path to an element. eg. body main section.hero h1.
  * @param {HTMLElement} el - The element to find the path of.
  */
-export function getSelectorPath(el){
+export function getSelectorPath (el){
 	const top = "body";
 	const children = el.parentNode.children;
 	let nthChild = 0;
@@ -43,14 +43,14 @@ export function getSelectorPath(el){
  * Gets the full CSS selector of an element, eg. div.editor
  * @param {HTMLElement} el - The element to get the selector of.
  */
-export function getSelector(el){
+export function getSelector (el){
 	if(!el) return;
 
 	let selector = el.localName;
 
 	if(!selector) return;
 	const classList = [...el.classList];
-	const index = classList.indexOf("cms-input-field");
+	const index = classList.indexOf("cms-editable");
 
 	if(index !== -1)
 		classList.splice(index, 1);
@@ -64,10 +64,31 @@ export function getSelector(el){
 }
 
 /**
+ * Find a section by its element path.
+ * @param {string} path - The path to identify the section.
+ * @param {Object[]} sections - An array of sections.
+ */
+export function findSection (path, sections){
+	for(let section of sections)
+		if(section.path === path)
+			return section;
+}
+
+export function findChangedSections (sections){
+	const changed = [];
+
+	for(let section of sections)
+		if(section.edited_text !== section.saved_text)
+			changed.push(section);
+
+	return changed;
+}
+
+/**
  * Use information in a link to navigate.
  * @param {HTMLElement} el - The a tag to use for navigation information.
  */
-export function navigateViaLink(el){
+export function navigateViaLink (el){
 	const href = el.href;
 
 	window.location.href = href;
@@ -78,7 +99,7 @@ export function navigateViaLink(el){
  * @param {HTMLElement} el - The element to start at.
  * @param {string[]} tags - An array of valid tags. Function will stop looking when one of these tags have been found.
  */
-export function getTopParent(el, tags){
+export function getTopParent (el, tags){
 	const target = el;
 	let topParent = target;
 
@@ -93,7 +114,7 @@ export function getTopParent(el, tags){
  * @param {HTMLElement[]} tools - Array of buttons to add to the toolbar.
  * @param {HTMLElement} toolbar - The toolbar to add buttons to.
  */
-export function appendTools(tools, toolbar){
+export function appendTools (tools, toolbar){
 	for(let tool of tools)
 		toolbar.appendChild(tool);
 }
@@ -101,7 +122,7 @@ export function appendTools(tools, toolbar){
 /**
  * Save position of text selection.
  */
-export function saveSelection(){
+export function saveSelection (){
 	document.execCommand("backColor", false, "#ccc");
 
 	if(window.getSelection) {
@@ -118,7 +139,7 @@ export function saveSelection(){
  * Apply a saved selection.
  * @param {Range} range - A range object
  */
-export function applySelection(range){
+export function applySelection (range){
 	if(range)
 		if(window.getSelection) {
 			var sel = window.getSelection();
@@ -137,7 +158,7 @@ export function applySelection(range){
  * @param {string} type - The type of prompt. Valid values are: "link" and "image"
  * @returns {string|File} Depending on the type of input, the return type could be a string or a File object.
  */
-export async function promptUser(titleText, type){
+export async function promptUser (titleText, type){
 	return new Promise(resolve => {
 		const prompt = document.querySelector(".cms-prompt-container");
 		const input = prompt.querySelector("input");
@@ -151,7 +172,7 @@ export async function promptUser(titleText, type){
 		submit.addEventListener("click", (e) => submitPrompt(e));
 		window.addEventListener("keyup", (e) => cancelPrompt(e));
 
-		function submitPrompt(e){
+		function submitPrompt (e){
 			const key = e.key;
 			const type = e.type;
 			const value = input.value;
@@ -162,7 +183,7 @@ export async function promptUser(titleText, type){
 			resolve(value);
 		}
 
-		function cancelPrompt(e){
+		function cancelPrompt (e){
 			const key = e.key;
 
 			if(key === "Escape"){
@@ -175,13 +196,13 @@ export async function promptUser(titleText, type){
 	});
 }
 
-function hidePrompt(){
+function hidePrompt (){
 	const prompt = document.querySelector(".cms-prompt-container");
 
 	prompt.classList.remove("show");
 }
 
-export function renderGhostPrompt(locale){
+export function renderGhostPrompt (locale){
 	const body = document.body;
 	const container = document.createElement("div");
 	const prompt = document.createElement("div");
@@ -208,14 +229,14 @@ export function renderGhostPrompt(locale){
  * @param {string} str - The string to reverse.
  * @param {string} [sep] - A character that seperates the string.
  */
-function reverseStr(str, sep = ""){
+function reverseStr (str, sep = ""){
 	const list = str.split(sep);
 	const result = list.reverse().join(sep);
 
 	return result;
 }
 
-export function getShortcut(shortcuts, combo){
+export function getShortcut (shortcuts, combo){
 	for(let shortcut of shortcuts)
 		if(shortcut.combo.join(" ") === combo.join(" "))
 			return shortcut;
