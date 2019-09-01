@@ -10,7 +10,10 @@ import {
 	applySelection,
 	promptUser,
 	renderGhostPrompt,
-	getShortcut } from "./lib/util";
+	getShortcut,
+	findSection,
+	findChangedSections
+} from "./lib/util";
 
 /**
  * The CMS client class. It enables the WYSIWYG editor.
@@ -119,8 +122,30 @@ class CMS extends EventEmitter{
 		window.addEventListener("mousedown", (e) => this._removeEdit(e));
 	}
 
-	save (){
-		console.log("save");
+	async save (){
+		const hasChanged = this._changedSinceSave();
+
+		if(!hasChanged) return;
+		const changedSections = findChangedSections(this.sections);
+
+		document.body.style.cursor = "wait";
+		const response = await fetch(this.saveUrl, {
+			method: "POST",
+			json: true,
+			headers: {
+				"Content-Type": "application/json"
+
+			},
+			body: JSON.stringify(changedSections)
+		});
+
+		// When the request fails, show an error!
+		if(!response.ok) this._error(this.locale.errors.save);
+
+		// When the request succeeds, update the saved sections!
+		if(response.ok) this._setSaved(changedSections);
+
+		document.body.style.cursor = "auto";
 	}
 
 	/*
@@ -128,6 +153,64 @@ class CMS extends EventEmitter{
 	PRIVATE METHODS
 	****************
 	*/
+
+	_error (msg){
+		console.error(msg);
+	}
+
+	/**
+	 * Sets the status of the save button, whether it is disabled or not.
+	 */
+	_setSaveStatus (){
+		const hasChanged = this._changedSinceSave();
+		const saveButton = document.querySelector(".cms-save");
+
+		if(!hasChanged)
+			saveButton.setAttribute("disabled", "true");
+		else if(hasChanged)
+			saveButton.removeAttribute("disabled");
+	}
+
+	/**
+	 * Checks whether or not changes have been made since the last save.
+	 * @returns {boolean} - True means that changes have been made. False means no changes have been made.
+	 */
+	_changedSinceSave (){
+		const sections = this.sections;
+
+		for(let section of sections)
+			if(section.edited_text !== section.saved_text)
+				return true;
+
+		return false;
+	}
+
+	_setSaved (changedSections){
+		const sections = this.sections;
+
+		for(let section of sections){
+			const path = section.path;
+
+			changedSections.forEach( changedSection => {
+				if(changedSection.path === path)
+					section.saved_text = changedSection.edited_text;
+			});
+		}
+
+		this._setSaveStatus();
+	}
+
+	/**
+	 * Sets the edited content in a section.
+	 * @param {string} path - The path to an editable element
+	 */
+	_setEdits (path){
+		const content = document.querySelector(path).innerHTML;
+		const section = findSection(path, this.sections);
+
+		section.edited_text = content;
+		this._setSaveStatus();
+	}
 
 	/**
 	 * Handle all shortcuts.
@@ -172,7 +255,7 @@ class CMS extends EventEmitter{
 	_renderToolbar (){
 		const body = document.body;
 		const toolbar = document.createElement("div");
-		const save = this._createBtn({ name: "save", handler: this.save });
+		const save = this._createBtn({ name: "save", handler: () => this.save() });
 
 		const tools = [save];
 
@@ -181,6 +264,8 @@ class CMS extends EventEmitter{
 
 		appendTools(tools, toolbar);
 		body.appendChild(toolbar);
+
+		this._setSaveStatus();
 	}
 
 	/**
@@ -291,6 +376,12 @@ class CMS extends EventEmitter{
 		if(el){
 			el.removeAttribute("contenteditable");
 			el.classList.remove("outline");
+		}
+
+		// Set save edited content.
+		if(el){
+			const path = getSelectorPath(el);
+			this._setEdits(path);
 		}
 	}
 
