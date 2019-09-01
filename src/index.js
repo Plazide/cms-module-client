@@ -203,8 +203,8 @@ class CMS extends EventEmitter{
 
 			// If the toolbar exceeds the width or height of the page,
 			// move it so that the whole toolbar can be displayed.
-			const tbViewPos = (el.offsetTop + elHeight + 10);
-			const view = document.body.clientHeight - window.innerHeight;
+			const tbViewPos = (el.offsetTop + elHeight + 80);
+			const view = window.innerHeight;
 			if(elPosX + tbWidth > window.innerWidth)
 				elPosX = (window.innerWidth - tbWidth) - 5;
 
