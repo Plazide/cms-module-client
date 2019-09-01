@@ -1,15 +1,5 @@
 {
-	"presets": [
-		[
-			"@babel/preset-env",
-			{
-				"targets": {
-					"ie": 10,
-					"chrome": 58
-				}
-			}
-		]
-	],
+	"presets": ["@babel/preset-env"],
 	"plugins": [
 		"@babel/plugin-transform-arrow-functions"
 	]
