@@ -2,8 +2,11 @@
   "name": "cms-module-client",
   "version": "0.2.0-dev.0",
   "description": "An editor for html pages. This is the client side part of the JS CMS module tool. It lets you edit a webpage in a WYSIWYG way. Together with the Server side module, it creates nicely integrated content management system for Node JS.",
-  "main": "index.js",
-  "scripts": {},
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "babel src --out-dir lib",
+    "prepare": "npm run build"
+  },
   "keywords": [
     "cms",
     "editor",
@@ -13,11 +16,12 @@
   "license": "ISC",
   "dependencies": {},
   "devDependencies": {
-    "@babel/core": "^7.5.4",
+    "@babel/cli": "^7.5.5",
+    "@babel/core": "^7.5.5",
     "@babel/plugin-transform-arrow-functions": "^7.2.0",
-    "@babel/preset-env": "^7.5.4",
+    "@babel/preset-env": "^7.5.5",
     "eslint": "^5.16.0",
-    "eslint-config-plazide": "^0.1.1"
+    "eslint-config-plazide": "^0.1.4"
   },
   "repository": {
     "type": "git",
