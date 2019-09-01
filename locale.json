@@ -53,6 +53,9 @@
 				"name": "Insert link",
 				"combo": ["ctrl", "l"]
 			}
+		},
+		"errors": {
+			"save": "Something went wrong when trying to save your changes."
 		}
 	},
 	"sv": {
@@ -109,6 +112,9 @@
 				"name": "Infoga länk",
 				"combo": ["ctrl", "l"]
 			}
+		},
+		"errors": {
+			"save": "Någonting gick fel när dina ändringar skulle sparas."
 		}
 	}	
 }
