@@ -265,6 +265,10 @@ div.cms-toolbar{
 .cms-save{
 	background: url("./icons/save.svg");
 	justify-self: flex-start;
+	opacity: 1;
+}
+.cms-save[disabled]{
+	opacity: .6;
 }
 .cms-publish{
 	background: url("./icons/publish.svg");
