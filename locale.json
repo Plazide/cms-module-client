@@ -5,6 +5,7 @@
 		"tooltips": {
 			"drag": "Move toolbar",
 			"save": "Save changes",
+			"langs": "Change the language your editing",
 			"publish": "Publish changes",
 			"bold": "Bold",
 			"italic": "Italic",
@@ -64,6 +65,7 @@
 		"tooltips": {
 			"drag": "Flytta verktygslådan",
 			"save": "Spara ändringar",
+			"langs": "Ändra språket som du redigerar",
 			"publish": "Publicera ändringar",
 			"bold": "Fet",
 			"italic": "Kursiv",
