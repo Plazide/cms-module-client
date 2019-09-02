@@ -12,7 +12,9 @@ import {
 	renderGhostPrompt,
 	getShortcut,
 	findSection,
-	findChangedSections
+	findChangedSections,
+	setCookie,
+	getCookie
 } from "./lib/util";
 
 /**
@@ -105,6 +107,7 @@ class CMS extends EventEmitter{
 				original_text: el.innerHTML,
 				edited_text: el.innerHTML,
 				saved_text: el.innerHTML,
+				element: el,
 				path: getSelectorPath(el),
 				page: window.location.pathname
 			};
@@ -148,6 +151,31 @@ class CMS extends EventEmitter{
 		document.body.style.cursor = "auto";
 	}
 
+	async publish (){
+		const hasChanged = this._changedSincePublish();
+
+		if(!hasChanged) return;
+		const sections = this.sections;
+
+		document.body.style.cursor = "wait";
+		const response = await fetch(this.publishUrl, {
+			method: "POST",
+			json: true,
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify(sections)
+		});
+
+		// When the request fails, show an error!
+		if(!response.ok) this._error(this.locale.errors.publish);
+
+		// When the request succeeds, update sections!
+		if(response.ok) this._setPublished();
+
+		document.body.style.cursor = "auto";
+	}
+
 	/*
 	****************
 	PRIVATE METHODS
@@ -156,6 +184,35 @@ class CMS extends EventEmitter{
 
 	_error (msg){
 		console.error(msg);
+	}
+
+	_setPublishStatus (){
+		const hasChanged = this._changedSincePublish();
+		const button = document.querySelector(".cms-publish");
+
+		if(!hasChanged)
+			button.setAttribute("disabled", "true");
+		else if(hasChanged)
+			button.removeAttribute("disabled");
+	}
+
+	_changedSincePublish (){
+		const sections = this.sections;
+
+		for(let section of sections)
+			if(section.saved_text !== section.original_text)
+				return true;
+
+		return false;
+	}
+
+	_setPublished (){
+		const sections = this.sections;
+
+		for(let section of sections)
+			section.original_text = section.saved_text;
+
+		this._setPublishStatus();
 	}
 
 	/**
@@ -189,24 +246,25 @@ class CMS extends EventEmitter{
 		const sections = this.sections;
 
 		for(let section of sections){
-			const path = section.path;
+			const element = section.element;
 
 			changedSections.forEach( changedSection => {
-				if(changedSection.path === path)
+				if(changedSection.element === element)
 					section.saved_text = changedSection.edited_text;
 			});
 		}
 
 		this._setSaveStatus();
+		this._setPublishStatus();
 	}
 
 	/**
 	 * Sets the edited content in a section.
-	 * @param {string} path - The path to an editable element
+	 * @param {string} element - An editable element
 	 */
-	_setEdits (path){
-		const content = document.querySelector(path).innerHTML;
-		const section = findSection(path, this.sections);
+	_setEdits (element){
+		const content = element.innerHTML;
+		const section = findSection(element, this.sections);
 
 		section.edited_text = content;
 		this._setSaveStatus();
@@ -255,9 +313,29 @@ class CMS extends EventEmitter{
 	_renderToolbar (){
 		const body = document.body;
 		const toolbar = document.createElement("div");
+		const publish = this._createBtn({ name: "publish", handler: () => this.publish() });
 		const save = this._createBtn({ name: "save", handler: () => this.save() });
+		const langs = this._createDropdown({
+			name: "langs",
+			options: [
+				{
+					name: "Svenska",
+					value: "sv"
+				},
+				{
+					name: "English",
+					value: "en"
+				},
+				{
+					name: "Nederlands",
+					value: "nl"
+				}
+			],
+			handler: (e) => this._changeLanguage(e)
+		});
 
-		const tools = [save];
+		// The order of this array determines the order in which the tools are displayed.
+		const tools = [langs, save, publish];
 
 		body.classList.add("cms-active");
 		toolbar.classList.add("cms-toolbar");
@@ -266,6 +344,7 @@ class CMS extends EventEmitter{
 		body.appendChild(toolbar);
 
 		this._setSaveStatus();
+		this._setPublishStatus();
 	}
 
 	/**
@@ -379,10 +458,9 @@ class CMS extends EventEmitter{
 		}
 
 		// Set save edited content.
-		if(el){
-			const path = getSelectorPath(el);
-			this._setEdits(path);
-		}
+		if(el)
+			// const path = getSelectorPath(el);
+			this._setEdits(el);
 	}
 
 	/**
@@ -405,6 +483,47 @@ class CMS extends EventEmitter{
 		btn.addEventListener("mousedown", handler);
 
 		return btn;
+	}
+
+	_createDropdown ({ name, options, handler }){
+		const title = this.locale.tooltips[name];
+		const con = document.createElement("div");
+		const icon = document.createElement("label");
+		const dropdown = document.createElement("select");
+		const currentLang = getCookie("lang");
+
+		con.classList.add("change-lang-con");
+		con.setAttribute("title", title);
+		icon.classList.add("cms-langs");
+		icon.classList.add("cms-btn");
+		icon.setAttribute("for", "cms-lang");
+		dropdown.setAttribute("id", "cms-lang");
+
+		options.forEach( option => {
+			const opt = document.createElement("option");
+
+			if(option.value === currentLang)
+				opt.setAttribute("selected", "");
+
+			opt.innerText = option.name;
+			opt.value = option.value;
+
+			dropdown.appendChild(opt);
+		});
+
+		con.appendChild(icon);
+		con.appendChild(dropdown);
+		dropdown.addEventListener("change", handler);
+
+		return con;
+	}
+
+	_changeLanguage (e){
+		const target = e.target;
+		const value = target.value;
+
+		setCookie("lang", value);
+		window.location.reload();
 	}
 
 	/**

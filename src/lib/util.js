@@ -1,3 +1,4 @@
+import cookies from "browser-cookies";
 
 /**
  * Gets the full selector path to an element. eg. body main section.hero h1.
@@ -68,9 +69,9 @@ export function getSelector (el){
  * @param {string} path - The path to identify the section.
  * @param {Object[]} sections - An array of sections.
  */
-export function findSection (path, sections){
+export function findSection (element, sections){
 	for(let section of sections)
-		if(section.path === path)
+		if(section.element === element)
 			return section;
 }
 
@@ -242,4 +243,28 @@ export function getShortcut (shortcuts, combo){
 			return shortcut;
 
 	return false;
+}
+
+function parseCookies (cookies){
+	const result = {};
+
+	for(let cookie of cookies){
+		const keyValue = cookie.split("=");
+		const key = keyValue[0].trim();
+		const value = keyValue[1];
+
+		result[key] = value;
+	}
+
+	return result;
+}
+
+export function setCookie (name, value){
+	cookies.set(name, value);
+}
+
+export function getCookie (name){
+	const cookies = parseCookies(document.cookie.split(";"));
+
+	return cookies[name];
 }
