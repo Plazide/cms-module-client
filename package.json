@@ -4,8 +4,8 @@
   "description": "An editor for html pages. This is the client side part of the JS CMS module tool. It lets you edit a webpage in a WYSIWYG way. Together with the Server side module, it creates nicely integrated content management system for Node JS.",
   "main": "lib/index.js",
   "scripts": {
-	"build": "babel src --out-dir lib",
-	"dev": "babel src --out-dir lib --watch",
+    "build": "babel src --out-dir lib",
+    "dev": "babel src --out-dir lib --watch",
     "prepare": "npm run build"
   },
   "keywords": [
@@ -15,7 +15,9 @@
   ],
   "author": "Carl Hallén",
   "license": "ISC",
-  "dependencies": {},
+  "dependencies": {
+    "browser-cookies": "^1.2.0"
+  },
   "devDependencies": {
     "@babel/cli": "^7.5.5",
     "@babel/core": "^7.5.5",
