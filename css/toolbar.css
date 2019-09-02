@@ -267,11 +267,18 @@ div.cms-toolbar{
 	justify-self: flex-start;
 	opacity: 1;
 }
-.cms-save[disabled]{
+.cms-save:disabled{
 	opacity: .6;
 }
 .cms-publish{
 	background: url("./icons/publish.svg");
+	opacity: 1;
+}
+.cms-publish:disabled{
+	opacity: .6;
+}
+.cms-langs{
+	background: url("./icons/langs.svg");
 }
 .local-toolbar .cms-bold{
 	background: url("./icons/bold.svg");
@@ -293,6 +300,15 @@ div.cms-toolbar{
 }
 .local-toolbar .cms-image{
 	background: url("./icons/image.svg");
+}
+
+.change-lang-con{
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+
+	margin-right: 100px;
 }
 
 /* Prompt */
