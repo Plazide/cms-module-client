@@ -5,63 +5,80 @@ import cookies from "browser-cookies";
  * @param {HTMLElement} el - The element to find the path of.
  */
 export function getSelectorPath (el){
-	const top = "body";
-	const children = el.parentNode.children;
-	let nthChild = 0;
-
-	for(let i = 0; i < children.length; i++){
-		const child = children[i];
-		if(child === el)
-			nthChild = i + 1;
-	}
-
-	let path = getSelector(el).trim() + `:nth-child(${nthChild}) `,
-		parent = el.parentNode,
-		i = 0;
-
 	if(el.localName === "html") return;
-	if(!parent) return;
 
+	// Define where to stop the climbing of the node tree.
+	const top = "body";
+
+	// Set the start of the path to the current element,
+	// and set the first parent.
+	let path = getSelector(el, false),
+		parent = el.parentNode;
+
+	// Climb up the node tree by getting the parentNode of every element until we reach the body tag.
+	// Get the selector of each element and add it to the path.
 	while(parent.localName !== top){
-		let selector = path;
-
-		selector += getSelector(parent);
+		const selector = getSelector(parent, path);
+		path = selector + " " + path;
 
 		parent = parent.parentNode;
-		path = selector;
-
-		// Safety measure to prevent infinite loop.
-		if(i > 50)
-			break;
-
-		i += 1;
 	}
 
-	return reverseStr(path, " ").trim();
+	return path;
 }
 
 /**
  * Gets the full CSS selector of an element, eg. div.editor
  * @param {HTMLElement} el - The element to get the selector of.
  */
-export function getSelector (el){
-	if(!el) return;
+export function getSelector (el, path){
+	if(!el) return"";
 
-	let selector = el.localName;
-
-	if(!selector) return;
+	const localName = el.localName;
 	const classList = [...el.classList];
-	const index = classList.indexOf("cms-editable");
+	const ignore = "cms-editable";
+	const ignoreIndex = classList.indexOf(ignore);
 
-	if(index !== -1)
-		classList.splice(index, 1);
+	let selector = localName;
 
-	if(el.id)
+	// Remove cms-editable class since it only exists in editor mode.
+	if(ignoreIndex !== -1)
+		classList.splice(ignoreIndex, 1);
+
+	// If element has an ID, add it to the selector.
+	// Since IDs should be unique, there is no need to continue building the selector.
+	if(el.id){
 		selector += "#" + el.id;
-	else if(classList.length > 0)
+		return selector;
+	}
+
+	if(classList.length > 0)
 		selector += "." + classList.join(".");
 
-	return selector + " ";
+	const siblings = findSiblingsOfSameName(el);
+	const nthChild = siblings.indexOf(el) + 1;
+
+	if(nthChild > 1)
+		selector += `:nth-child(${nthChild})`;
+
+	return selector;
+}
+
+/**
+ * Find all siblings of an element with the same tag name.
+ * @param {HTMLElement} el - The element to find siblings of.
+ */
+function findSiblingsOfSameName (el){
+	const localName = el.localName;
+	const parent = el.parentNode;
+	const children = parent.children;
+	const siblings = [];
+
+	for(let child of children)
+		if(child.localName === localName)
+			siblings.push(child);
+
+	return siblings;
 }
 
 /**
@@ -101,11 +118,22 @@ export function navigateViaLink (el){
  * @param {string[]} tags - An array of valid tags. Function will stop looking when one of these tags have been found.
  */
 export function getTopParent (el, tags){
-	const target = el;
-	let topParent = target;
+	const top = "body";
+	const elements = [];
+	let topParent,
+		currentEl = el;
 
-	while(tags.indexOf(topParent.localName) === -1 || topParent.localName === "body")
-		topParent = topParent.parentNode;
+	while(currentEl.localName !== top){
+		elements.unshift(currentEl);
+
+		currentEl = currentEl.parentNode;
+	}
+
+	for(let element of elements)
+		if(tags.indexOf(element.localName) !== -1){
+			topParent = element;
+			break;
+		}
 
 	return topParent;
 }
@@ -223,18 +251,6 @@ export function renderGhostPrompt (locale){
 	container.appendChild(prompt);
 
 	body.appendChild(container);
-}
-
-/**
- * Reverse a string.
- * @param {string} str - The string to reverse.
- * @param {string} [sep] - A character that seperates the string.
- */
-function reverseStr (str, sep = ""){
-	const list = str.split(sep);
-	const result = list.reverse().join(sep);
-
-	return result;
 }
 
 export function getShortcut (shortcuts, combo){

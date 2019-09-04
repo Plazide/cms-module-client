@@ -99,10 +99,12 @@ class CMS extends EventEmitter{
 	run (){
 		// Find all editable elements.
 		const tags = this.tags.join(", ");
-		const elements = [...document.querySelectorAll(tags)];
+		const elements = [...document.querySelectorAll(tags)].reverse();
 
 		// Add listeners to all the editable elements.
-		for(const el of elements){
+		for(const element of elements){
+			const el = getTopParent(element, this.tags);
+
 			const cmsElement = {
 				original_text: el.innerHTML,
 				edited_text: el.innerHTML,
