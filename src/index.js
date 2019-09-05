@@ -29,6 +29,7 @@ class CMS extends EventEmitter{
 	 * @param {string} [options.saveUrl] - The endpoint where the client will send the edited content to be saved.
 	 * @param {string} [options.publishUrl] - The endpoint where the client will send a request to make the saved content public.
 	 * @param {string} [options.uploadUrl] - The endpoint where images will be sent.
+	 * @param {function} [options.logout] - Add a logout function. If this is assigned a function, a logout button will appear on the main toolbar. If it is not specified, the logout button won't appear.
 	 */
 	constructor ({
 		editorLang = "en",
@@ -36,7 +37,8 @@ class CMS extends EventEmitter{
 		saveUrl = "/cms/save",
 		publishUrl = "/cms/publish",
 		uploadUrl = "/cms/upload",
-		auth = ""
+		auth = "",
+		logout = null
 	}){
 		super();
 
@@ -50,6 +52,7 @@ class CMS extends EventEmitter{
 		this.auth = auth;
 		this.sections = [];
 		this.childTags = ["li", "b", "i", "span", "u", "strike", "a"];
+		this.logout = logout;
 		this.shortcuts = [
 			{
 				name: this.locale.shortcuts.save.name,
@@ -335,9 +338,11 @@ class CMS extends EventEmitter{
 			],
 			handler: (e) => this._changeLanguage(e)
 		});
+		const logout = typeof this.logout === "function"
+			? this._createBtn({ name: "logout", handler: this.logout }) : null;
 
 		// The order of this array determines the order in which the tools are displayed.
-		const tools = [langs, save, publish];
+		const tools = [logout, langs, save, publish];
 
 		body.classList.add("cms-active");
 		toolbar.classList.add("cms-toolbar");

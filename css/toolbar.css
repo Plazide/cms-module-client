@@ -192,7 +192,6 @@ div.cms-toolbar{
 
 	padding: 0 2rem;
 	display: flex;
-	justify-content: flex-end;
 	align-items: center;
 
 	bottom: 0;
@@ -254,6 +253,12 @@ div.cms-toolbar{
 	outline: 2px solid rgb(94, 94, 255);
 	box-shadow: 0px 0px 5px rgba(88, 88, 136, 0.3);
 }
+.cms-btn:hover:disabled,
+.cms-btn:active:disabled{
+	outline: none;
+	box-shadow: none;
+	cursor: default;
+}
 .cms-toolbar .cms-btn{
 	display: inline-block;
 	width: 42px;
@@ -262,9 +267,10 @@ div.cms-toolbar{
 	background-repeat: no-repeat;
 	background-size: cover;
 }
+
+/* Main toolbar buttons */
 .cms-save{
 	background: url("./icons/save.svg");
-	justify-self: flex-start;
 	opacity: 1;
 }
 .cms-save:disabled{
@@ -280,6 +286,13 @@ div.cms-toolbar{
 .cms-langs{
 	background: url("./icons/langs.svg");
 }
+.cms-logout{
+	background: url("./icons/logout.svg");
+	margin-right: 50px;
+	transform: rotate(180deg);
+}
+
+/* Local toolbar buttons */
 .local-toolbar .cms-bold{
 	background: url("./icons/bold.svg");
 }
@@ -308,7 +321,7 @@ div.cms-toolbar{
 	justify-content: center;
 	align-items: center;
 
-	margin-right: 100px;
+	margin-right: auto;
 }
 
 /* Prompt */

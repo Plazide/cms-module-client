@@ -4,6 +4,7 @@
 		"lang_code": "en",
 		"tooltips": {
 			"drag": "Move toolbar",
+			"logout": "Logout",
 			"save": "Save changes",
 			"langs": "Change the language your editing",
 			"publish": "Publish changes",
@@ -64,6 +65,7 @@
 		"lang_code": "sv",
 		"tooltips": {
 			"drag": "Flytta verktygslådan",
+			"logout": "Logga ut",
 			"save": "Spara ändringar",
 			"langs": "Ändra språket som du redigerar",
 			"publish": "Publicera ändringar",

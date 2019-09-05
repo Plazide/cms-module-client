@@ -144,8 +144,11 @@ export function getTopParent (el, tags){
  * @param {HTMLElement} toolbar - The toolbar to add buttons to.
  */
 export function appendTools (tools, toolbar){
-	for(let tool of tools)
+	for(let tool of tools){
+		if(!tool) continue;
+
 		toolbar.appendChild(tool);
+	}
 }
 
 /**
