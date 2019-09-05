@@ -201,6 +201,8 @@ class CMS extends EventEmitter{
 	 * @private
 	 */
 	_setPublishStatus (){
+		return;
+
 		const hasChanged = this._changedSincePublish();
 		const button = document.querySelector(".cms-publish");
 
