@@ -187,10 +187,19 @@ class CMS extends EventEmitter{
 	****************
 	*/
 
+	/**
+	 * Display an error.
+	 * @param {string} msg - The error message.
+	 * @private
+	 */
 	_error (msg){
 		console.error(msg);
 	}
 
+	/**
+	 * Set the status of the publish icon. Disabled or not disabled.
+	 * @private
+	 */
 	_setPublishStatus (){
 		const hasChanged = this._changedSincePublish();
 		const button = document.querySelector(".cms-publish");
@@ -201,6 +210,10 @@ class CMS extends EventEmitter{
 			button.removeAttribute("disabled");
 	}
 
+	/**
+	 * Check whether there have been changes since the last publish.
+	 * @private
+	 */
 	_changedSincePublish (){
 		const sections = this.sections;
 
@@ -211,6 +224,10 @@ class CMS extends EventEmitter{
 		return false;
 	}
 
+	/**
+	 * Set the content that was just published as the original text.
+	 * @private
+	 */
 	_setPublished (){
 		const sections = this.sections;
 
@@ -222,6 +239,7 @@ class CMS extends EventEmitter{
 
 	/**
 	 * Sets the status of the save button, whether it is disabled or not.
+	 * @private
 	 */
 	_setSaveStatus (){
 		const hasChanged = this._changedSinceSave();
@@ -236,6 +254,7 @@ class CMS extends EventEmitter{
 	/**
 	 * Checks whether or not changes have been made since the last save.
 	 * @returns {boolean} - True means that changes have been made. False means no changes have been made.
+	 * @private
 	 */
 	_changedSinceSave (){
 		const sections = this.sections;
@@ -247,6 +266,11 @@ class CMS extends EventEmitter{
 		return false;
 	}
 
+	/**
+	 * Set the saved content.
+	 * @param {object[]} changedSections - And array of sections that have changed.
+	 * @private
+	 */
 	_setSaved (changedSections){
 		const sections = this.sections;
 
@@ -266,6 +290,7 @@ class CMS extends EventEmitter{
 	/**
 	 * Sets the edited content in a section.
 	 * @param {string} element - An editable element
+	 * @private
 	 */
 	_setEdits (element){
 		const content = element.innerHTML;
@@ -277,6 +302,7 @@ class CMS extends EventEmitter{
 
 	/**
 	 * Handle all shortcuts.
+	 * @private
 	 */
 	_handleShortcuts (){
 		document.onkeydown = (e) => {
@@ -492,7 +518,18 @@ class CMS extends EventEmitter{
 		return btn;
 	}
 
-	_createDropdown ({ name, options, handler }){
+	/**
+	 * Create a dropdown menu.
+	 * @param {object} options - Options used to create the dropdown.
+	 * @param {String} options.name - The name of the dropdown, should correspond to a name in the locale file.
+	 * @param {function} options.handler - A function that will be called when the dropdown value changes.
+	 * @param {object[]} options.options - An array of options to choose from in the dropdown.
+	 * @param {string} options.options.name - The name of the option, this is the value that is displayed when choosing an option.
+	 * @param {string} options.options.value - The value of the option.
+	 * @returns {HTMLDivElement}
+	 * @private
+	 */
+	_createDropdown ({ name, handler, options }){
 		const title = this.locale.tooltips[name];
 		const con = document.createElement("div");
 		const icon = document.createElement("label");
@@ -525,6 +562,11 @@ class CMS extends EventEmitter{
 		return con;
 	}
 
+	/**
+	 * Change the language that is being edited.
+	 * @param {Event} e - An event object.
+	 * @private
+	 */
 	_changeLanguage (e){
 		const target = e.target;
 		const value = target.value;
@@ -576,6 +618,7 @@ class CMS extends EventEmitter{
 	/**
 	 * Make the selected text into a link.
 	 * @param {Event} e - An event object from clicking the insert link button.
+	 * @private
 	 */
 	async _insertLink (e){
 		e.preventDefault();
