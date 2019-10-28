@@ -7,6 +7,7 @@
 			"logout": "Logout",
 			"save": "Save changes",
 			"langs": "Change the language your editing",
+			"meta": "Change meta info, eg. page title or description",
 			"publish": "Publish changes",
 			"bold": "Bold",
 			"italic": "Italic",
@@ -15,6 +16,13 @@
 			"link": "Insert link",
 			"unlink": "Remove link",
 			"image": "Insert image"
+		},
+		"meta": {
+			"title": "Change meta info",
+			"pageTitle": "Page title",
+			"pageDesc": "Description",
+			"pageKeywords": "Keywords",
+			"pageCanonical": "Canonical url"
 		},
 		"hints": {
 			"unsaved": "Unsaved changes",
@@ -68,6 +76,7 @@
 			"logout": "Logga ut",
 			"save": "Spara ändringar",
 			"langs": "Ändra språket som du redigerar",
+			"meta": "Ändra meta information. T.ex. sidtitel och beskrivning",
 			"publish": "Publicera ändringar",
 			"bold": "Fet",
 			"italic": "Kursiv",
@@ -76,6 +85,13 @@
 			"link": "Infoga länk",
 			"unlink": "Ta bort länk",
 			"image": "Infoga bild"
+		},
+		"meta": {
+			"title": "Ändra meta information",
+			"pageTitle": "Sidtitel",
+			"pageDesc": "Beskrivning",
+			"pageKeywords": "Nyckelord",
+			"pageCanonical": "Kanonisk url"
 		},
 		"hints": {
 			"unsaved": "Osparade ändringar",

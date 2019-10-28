@@ -286,9 +286,14 @@ div.cms-toolbar{
 .cms-langs{
 	background: url("./icons/langs.svg");
 }
+.cms-meta{
+	background: url("./icons/meta.svg");
+	margin-right: auto;
+	margin-left: 30px;
+}
 .cms-logout{
 	background: url("./icons/logout.svg");
-	margin-right: 50px;
+	margin-right: 30px;
 	transform: rotate(180deg);
 }
 
@@ -320,8 +325,69 @@ div.cms-toolbar{
 	flex-direction: row;
 	justify-content: center;
 	align-items: center;
+}
 
-	margin-right: auto;
+.meta{
+	display: flex;
+	justify-content: center;
+	align-items: center;
+
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	right: 0;
+	left: 0;
+
+	background: rgba(88, 88, 136, 0.3);
+	z-index: 10000;
+}
+.meta header{
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+
+	padding: 0 1rem;
+}
+.meta header .title{
+	font-size: 1.3rem;
+	font-weight: 600;
+}
+.meta header .close{
+	background: url("./icons/close_white.svg");
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 130%;
+	height: 24px;
+	width: 24px;
+}
+.meta .content{
+	background: #fff;
+	width: 50%;
+	height: 80%;
+	box-shadow: 0 3px 10px #00000030;
+}
+.meta .inputs{
+	padding: 1rem;
+}
+.meta .input-container{
+	display: flex;
+	flex-direction: column;
+	margin-bottom: 2rem;
+}
+.meta .input-container span{
+	font-size: 1.1rem;
+	font-weight: 600;
+	padding-left: 1rem;
+	padding-bottom: .3rem;
+}
+.meta .input-container input{
+	padding: .5rem 1rem;
+	font-size: 1rem;
+	border-radius: 4px;
+}
+.meta button{
+	font-size: 1rem;
 }
 
 /* Prompt */

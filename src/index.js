@@ -2,6 +2,7 @@ import "../css/toolbar.css";
 import langs from "../locale.json";
 import EventEmitter from "events";
 import {
+	getMetaInfo,
 	getSelectorPath,
 	navigateViaLink,
 	getTopParent,
@@ -135,6 +136,13 @@ class CMS extends EventEmitter{
 
 		if(!hasChanged) return;
 		const changedSections = findChangedSections(this.sections);
+		const meta = getMetaInfo();
+		const data = {
+			sections: changedSections,
+			meta
+		};
+
+		console.log(data);
 
 		document.body.style.cursor = "wait";
 		const response = await fetch(this.saveUrl, {
@@ -144,7 +152,7 @@ class CMS extends EventEmitter{
 				"Content-Type": "application/json"
 
 			},
-			body: JSON.stringify(changedSections)
+			body: JSON.stringify(data)
 		});
 
 		// When the request fails, show an error!
@@ -201,15 +209,14 @@ class CMS extends EventEmitter{
 	 * @private
 	 */
 	_setPublishStatus (){
-		return;
 
-		const hasChanged = this._changedSincePublish();
+		/* const hasChanged = this._changedSincePublish();
 		const button = document.querySelector(".cms-publish");
 
 		if(!hasChanged)
 			button.setAttribute("disabled", "true");
 		else if(hasChanged)
-			button.removeAttribute("disabled");
+			button.removeAttribute("disabled"); */
 	}
 
 	/**
@@ -259,13 +266,15 @@ class CMS extends EventEmitter{
 	 * @private
 	 */
 	_changedSinceSave (){
-		const sections = this.sections;
+		return true;
+
+		/* const sections = this.sections;
 
 		for(let section of sections)
 			if(section.edited_text !== section.saved_text)
 				return true;
 
-		return false;
+		return false; */
 	}
 
 	/**
@@ -339,6 +348,113 @@ class CMS extends EventEmitter{
 		};
 	}
 
+	_editMeta (){
+		const metaInfo = getMetaInfo();
+		const container = document.createElement("div");
+		const content = document.createElement("form");
+		const inputs = document.createElement("div");
+		const header = document.createElement("header");
+		const title = document.createElement("span");
+		const close = document.createElement("div");
+		const submit = document.createElement("button");
+
+		const editTitle = this._createInput({
+			label: this.locale.pageTitle,
+			name: "title",
+			defaultValue: metaInfo.title
+		});
+		const editDesc = this._createInput({
+			label: this.locale.pageDesc,
+			name: "description",
+			defaultValue: metaInfo.description
+		});
+		const editKeywords = this._createInput({
+			label: this.locale.pageKeywords,
+			name: "keywords",
+			defaultValue: metaInfo.keywords
+		});
+		const editCanonical = this._createInput({
+			label: this.locale.pageCanonical,
+			name: "canonical",
+			defaultValue: metaInfo.canonical
+		});
+
+		container.classList.add("meta");
+		submit.textContent = "Spara";
+
+		inputs.classList.add("inputs");
+		close.classList.add("close");
+		title.classList.add("title");
+		title.textContent = this.locale.meta.title;
+		header.appendChild(title);
+		header.appendChild(close);
+
+		inputs.appendChild(editTitle);
+		inputs.appendChild(editDesc);
+		inputs.appendChild(editKeywords);
+		inputs.appendChild(editCanonical);
+		inputs.appendChild(submit);
+
+		content.classList.add("content");
+		content.appendChild(header);
+		content.appendChild(inputs);
+		container.appendChild(content);
+		document.body.prepend(container);
+
+		function closeEdit (e){
+			const{ key, type } = e;
+
+			if(key === "Escape" || type === "click"){
+				window.removeEventListener("keyup", closeEdit);
+				document.body.removeChild(container);
+			}
+		}
+
+		const onSubmit = (e) => {
+			e.preventDefault();
+
+			const form = {};
+			const inputs = [...e.target];
+			inputs.forEach( input => { form[input.name] = input.value; });
+			this._setMeta(form);
+		};
+
+		content.addEventListener("submit", onSubmit);
+		close.addEventListener("click", closeEdit);
+		window.addEventListener("keyup", closeEdit);
+	}
+
+	_setMeta ({ title, description, keywords, canonical }){
+		if(title)
+			document.title = title;
+
+		if(description)
+			document.querySelector("head meta[name=\"description\"]").setAttribute("content", description);
+
+		if(keywords)
+			document.querySelector("head meta[name=\"keywords\"]").setAttribute("content", keywords);
+
+		if(canonical)
+			document.querySelector("head link[rel=\"canonical\"]").setAttribute("href", canonical);
+	}
+
+	_createInput ({ defaultValue = "", name = "", label = "", classes = "" }){
+		const input = document.createElement("input");
+		const inputCon = document.createElement("div");
+		const inputLabel = document.createElement("span");
+		input.className = classes;
+		input.name = name;
+		input.value = defaultValue;
+		inputLabel.textContent = label;
+
+		inputCon.classList.add("input-container");
+
+		inputCon.appendChild(inputLabel);
+		inputCon.appendChild(input);
+
+		return inputCon;
+	}
+
 	/**
 	 * Render the global toolbar.
 	 * @private
@@ -348,6 +464,7 @@ class CMS extends EventEmitter{
 		const toolbar = document.createElement("div");
 		const publish = this._createBtn({ name: "publish", handler: () => this.publish() });
 		const save = this._createBtn({ name: "save", handler: () => this.save() });
+		const meta = this._createBtn({ name: "meta", handler: () => this._editMeta() });
 		const langs = this._createDropdown({
 			name: "langs",
 			options: [
@@ -370,7 +487,7 @@ class CMS extends EventEmitter{
 			? this._createBtn({ name: "logout", handler: this.logout }) : null;
 
 		// The order of this array determines the order in which the tools are displayed.
-		const tools = [logout, langs, save, publish];
+		const tools = [logout, langs, meta, save, publish];
 
 		body.classList.add("cms-active");
 		toolbar.classList.add("cms-toolbar");

@@ -1,5 +1,19 @@
 import cookies from "browser-cookies";
 
+export function getMetaInfo (){
+	const head = document.querySelector("head");
+
+	const meta = {
+		url: window.location.pathname,
+		title: document.title,
+		description: head.querySelector("meta[name=\"description\"]").getAttribute("content"),
+		keywords: head.querySelector("meta[name=\"keywords\"]").getAttribute("content"),
+		canonical: head.querySelector("link[rel=\"canonical\"]").getAttribute("href")
+	};
+
+	return meta;
+}
+
 /**
  * Gets the full selector path to an element. eg. body main section.hero h1.
  * @param {HTMLElement} el - The element to find the path of.
