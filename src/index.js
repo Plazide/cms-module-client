@@ -465,7 +465,7 @@ class CMS extends EventEmitter{
 		const publish = this._createBtn({ name: "publish", handler: () => this.publish() });
 		const save = this._createBtn({ name: "save", handler: () => this.save() });
 		const meta = this._createBtn({ name: "meta", handler: () => this._editMeta() });
-		const langs = this._createDropdown({
+		/* const langs = this._createDropdown({
 			name: "langs",
 			options: [
 				{
@@ -482,12 +482,12 @@ class CMS extends EventEmitter{
 				}
 			],
 			handler: (e) => this._changeLanguage(e)
-		});
+		}); */
 		const logout = typeof this.logout === "function"
 			? this._createBtn({ name: "logout", handler: this.logout }) : null;
 
 		// The order of this array determines the order in which the tools are displayed.
-		const tools = [logout, langs, meta, save, publish];
+		const tools = [logout, meta, save, publish];
 
 		body.classList.add("cms-active");
 		toolbar.classList.add("cms-toolbar");
