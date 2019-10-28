@@ -22,7 +22,8 @@
 			"pageTitle": "Page title",
 			"pageDesc": "Description",
 			"pageKeywords": "Keywords",
-			"pageCanonical": "Canonical url"
+			"pageCanonical": "Canonical url",
+			"submit": "Save"
 		},
 		"hints": {
 			"unsaved": "Unsaved changes",
@@ -91,7 +92,8 @@
 			"pageTitle": "Sidtitel",
 			"pageDesc": "Beskrivning",
 			"pageKeywords": "Nyckelord",
-			"pageCanonical": "Kanonisk url"
+			"pageCanonical": "Kanonisk url",
+			"submit": "Spara"
 		},
 		"hints": {
 			"unsaved": "Osparade ändringar",

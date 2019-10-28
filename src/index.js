@@ -359,28 +359,28 @@ class CMS extends EventEmitter{
 		const submit = document.createElement("button");
 
 		const editTitle = this._createInput({
-			label: this.locale.pageTitle,
+			label: this.locale.meta.pageTitle,
 			name: "title",
 			defaultValue: metaInfo.title
 		});
 		const editDesc = this._createInput({
-			label: this.locale.pageDesc,
+			label: this.locale.meta.pageDesc,
 			name: "description",
 			defaultValue: metaInfo.description
 		});
 		const editKeywords = this._createInput({
-			label: this.locale.pageKeywords,
+			label: this.locale.meta.pageKeywords,
 			name: "keywords",
 			defaultValue: metaInfo.keywords
 		});
 		const editCanonical = this._createInput({
-			label: this.locale.pageCanonical,
+			label: this.locale.meta.pageCanonical,
 			name: "canonical",
 			defaultValue: metaInfo.canonical
 		});
 
 		container.classList.add("meta");
-		submit.textContent = "Spara";
+		submit.textContent = this.locale.meta.submit;
 
 		inputs.classList.add("inputs");
 		close.classList.add("close");
