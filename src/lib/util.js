@@ -4,11 +4,11 @@ export function getMetaInfo (){
 	const head = document.querySelector("head");
 
 	const meta = {
-		url: window.location.pathname,
-		title: document.title,
-		description: head.querySelector("meta[name=\"description\"]").getAttribute("content"),
-		keywords: head.querySelector("meta[name=\"keywords\"]").getAttribute("content"),
-		canonical: head.querySelector("link[rel=\"canonical\"]").getAttribute("href")
+		url: window.location.pathname || "",
+		title: document.title || "",
+		description: head.querySelector("meta[name=\"description\"]").getAttribute("content") || "",
+		keywords: head.querySelector("meta[name=\"keywords\"]").getAttribute("content") || "",
+		canonical: head.querySelector("link[rel=\"canonical\"]").getAttribute("href") || ""
 	};
 
 	return meta;
