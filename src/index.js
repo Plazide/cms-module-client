@@ -38,6 +38,7 @@ class CMS extends EventEmitter{
 		saveUrl = "/cms/save",
 		publishUrl = "/cms/publish",
 		uploadUrl = "/cms/upload",
+		editCanonical = false,
 		auth = "",
 		logout = null
 	}){
@@ -50,6 +51,7 @@ class CMS extends EventEmitter{
 		this.saveUrl = saveUrl;
 		this.publishUrl = publishUrl;
 		this.uploadUrl = uploadUrl;
+		this.editCanonical = editCanonical;
 		this.auth = auth;
 		this.sections = [];
 		this.childTags = ["li", "b", "i", "span", "u", "strike", "a"];
@@ -392,7 +394,10 @@ class CMS extends EventEmitter{
 		inputs.appendChild(editTitle);
 		inputs.appendChild(editDesc);
 		inputs.appendChild(editKeywords);
-		inputs.appendChild(editCanonical);
+
+		if(this.editCanonical)
+			inputs.appendChild(editCanonical);
+
 		inputs.appendChild(submit);
 
 		content.classList.add("content");
