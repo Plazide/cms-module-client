@@ -226,13 +226,15 @@ class CMS extends EventEmitter{
 	 * @private
 	 */
 	_changedSincePublish (){
-		const sections = this.sections;
+		return true;
+
+		/* const sections = this.sections;
 
 		for(let section of sections)
 			if(section.saved_text !== section.original_text)
 				return true;
 
-		return false;
+		return false; */
 	}
 
 	/**
