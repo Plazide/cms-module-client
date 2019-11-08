@@ -70,30 +70,29 @@ export function getSelector (el, path){
 	if(classList.length > 0)
 		selector += "." + classList.join(".");
 
-	const siblings = findSiblingsOfSameName(el);
+	const siblings = findSiblings(el);
+	const siblingsOfSameName = findSiblingsOfSameName(localName, siblings);
 	const nthChild = siblings.indexOf(el) + 1;
 
-	if(nthChild > 1)
+	if(nthChild > 1 && siblingsOfSameName.length > 1)
 		selector += `:nth-child(${nthChild})`;
 
 	return selector;
+}
+
+function findSiblings (el){
+	const parent = el.parentNode;
+	const children = [...parent.children];
+
+	return children;
 }
 
 /**
  * Find all siblings of an element with the same tag name.
  * @param {HTMLElement} el - The element to find siblings of.
  */
-function findSiblingsOfSameName (el){
-	const localName = el.localName;
-	const parent = el.parentNode;
-	const children = parent.children;
-	const siblings = [];
-
-	for(let child of children)
-		if(child.localName === localName)
-			siblings.push(child);
-
-	return siblings;
+function findSiblingsOfSameName (name, siblings){
+	return siblings.filter(sibling => sibling.localName === name);
 }
 
 /**
