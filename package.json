@@ -1,6 +1,6 @@
 {
   "name": "cms-module-client",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "An editor for html pages. This is the client side part of the JS CMS module tool. It lets you edit a webpage in a WYSIWYG way. Together with the Server side module, it creates nicely integrated content management system for Node JS.",
   "main": "lib/index.js",
   "scripts": {
