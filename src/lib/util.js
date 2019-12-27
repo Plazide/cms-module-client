@@ -3,12 +3,14 @@ import cookies from "browser-cookies";
 export function getMetaInfo (){
 	const head = document.querySelector("head");
 	const canonical = head.querySelector("link[rel=\"canonical\"]");
+	const keywords = head.querySelector("meta[name=\"keywords\"]");
+	const description = head.querySelector("meta[name=\"description\"]");
 
 	const meta = {
 		url: window.location.pathname || "",
 		title: document.title || "",
-		description: head.querySelector("meta[name=\"description\"]").getAttribute("content") || "",
-		keywords: head.querySelector("meta[name=\"keywords\"]").getAttribute("content") || "",
+		description: description === null ? "" : description.getAttribute("content"),
+		keywords: keywords === null ? "" : keywords.getAttribute("content"),
 		canonical: canonical === null ? "" : canonical.getAttribute("href")
 	};
 
