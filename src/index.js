@@ -131,6 +131,8 @@ class CMS extends EventEmitter{
 		renderGhostPrompt(this.locale);
 
 		window.addEventListener("mousedown", (e) => this._removeEdit(e));
+
+		setInterval( () => { this.save(); }, 60 * 1000);
 	}
 
 	async save (){
@@ -443,6 +445,8 @@ class CMS extends EventEmitter{
 
 		if(canonical)
 			document.querySelector("head link[rel=\"canonical\"]").setAttribute("href", canonical);
+
+		this.save();
 	}
 
 	_createInput ({ defaultValue = "", name = "", label = "", classes = "" }){
